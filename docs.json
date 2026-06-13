@@ -1,33 +1,65 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Splendor Docs",
+  "name": "Splendor",
   "colors": {
-    "primary": "#0F766E",
-    "light": "#14B8A6",
-    "dark": "#2DD4BF"
+    "primary": "#00803d",
+    "light": "#00b356",
+    "dark": "#1aff88"
   },
   "favicon": "/favicon.svg",
+  "fonts": {
+    "heading": { "family": "Inter" },
+    "body": { "family": "Inter" }
+  },
+  "styling": {
+    "eyebrows": "section"
+  },
   "navigation": {
-    "pages": [
+    "tabs": [
       {
-        "group": "Getting Started",
-        "pages": [
-          "index",
-          "quickstart"
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get started",
+            "pages": [
+              "index",
+              "quickstart",
+              "authentication",
+              "concepts/overview"
+            ]
+          },
+          {
+            "group": "Core concepts",
+            "pages": [
+              "concepts/tenancy",
+              "concepts/datasets",
+              "concepts/search-model",
+              "concepts/handles-and-cursors",
+              "concepts/views",
+              "concepts/provenance"
+            ]
+          }
         ]
       }
-    ],
-    "global": {
-      "anchors": []
-    }
+    ]
   },
   "logo": {
     "light": "/logo/light.svg",
     "dark": "/logo/dark.svg"
   },
   "navbar": {
-    "links": []
+    "links": [
+      {
+        "label": "Console",
+        "href": "https://app.splendor.io"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Get started",
+      "href": "/quickstart"
+    }
   },
   "contextual": {
     "options": [

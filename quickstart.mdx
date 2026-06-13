@@ -1,28 +1,156 @@
 ---
-title: "Quickstart"
-description: "Confirm the Splendor docs site is live."
+title: "Run your first search"
+description: "Authenticate, find a dataset, and run a search against it in a few minutes."
 ---
 
-Use this page as a smoke test for the hosted Mintlify site.
+This guide takes you from credentials to your first search result. By the end you will have listed your datasets, run a query, and read the response envelope that every search returns.
+
+## Prerequisites
+
+- A Splendor API token and your tenant ID. Both are available from the [console](https://app.splendor.io) under your workspace settings.
+- At least one dataset that has finished ingesting. New to ingestion? See [Datasets & schema](/concepts/datasets).
+
+<Tip>
+  Export your credentials once so the examples below run as-is:
+
+  ```bash
+  export SPLENDOR_TOKEN="your-api-token"
+  export SPLENDOR_TENANT_ID="your-tenant-id"
+  ```
+</Tip>
+
+## Steps
 
 <Steps>
-  <Step title="Open the docs">
-    Visit the hosted site.
+  <Step title="List your datasets">
+    Confirm your credentials work and find a dataset to query.
 
-    ```text
-    https://splendor.mintlify.app
+    <CodeGroup>
+    ```bash curl
+    curl https://api.splendor.io/v1/datasets \
+      -H "Authorization: Bearer $SPLENDOR_TOKEN" \
+      -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID"
     ```
+
+    ```python Python
+    import os, httpx
+
+    client = httpx.Client(
+        base_url="https://api.splendor.io",
+        headers={
+            "Authorization": f"Bearer {os.environ['SPLENDOR_TOKEN']}",
+            "X-Splendor-Tenant-Id": os.environ["SPLENDOR_TENANT_ID"],
+        },
+    )
+
+    datasets = client.get("/v1/datasets").json()
+    print(datasets)
+    ```
+
+    ```typescript TypeScript
+    const base = "https://api.splendor.io";
+    const headers = {
+      Authorization: `Bearer ${process.env.SPLENDOR_TOKEN}`,
+      "X-Splendor-Tenant-Id": process.env.SPLENDOR_TENANT_ID!,
+    };
+
+    const datasets = await fetch(`${base}/v1/datasets`, { headers }).then((r) => r.json());
+    console.log(datasets);
+    ```
+    </CodeGroup>
+
+    Pick a `dataset_id` from the response to use in the next step.
   </Step>
 
-  <Step title="Check this page">
-    Visit `/quickstart` and confirm this page loads.
+  <Step title="Run a search">
+    Search the dataset for a keyword. The request body selects the datasets, the query text, and how many results to return.
+
+    <CodeGroup>
+    ```bash curl
+    curl https://api.splendor.io/v1/search \
+      -H "Authorization: Bearer $SPLENDOR_TOKEN" \
+      -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "text": "timeout",
+        "datasets": ["your-dataset-id"],
+        "limit": 10
+      }'
+    ```
+
+    ```python Python
+    envelope = client.post(
+        "/v1/search",
+        json={"text": "timeout", "datasets": ["your-dataset-id"], "limit": 10},
+    ).json()
+
+    for result in envelope["results"]:
+        print(result["score"], result["body"][:120])
+    ```
+
+    ```typescript TypeScript
+    const envelope = await fetch(`${base}/v1/search`, {
+      method: "POST",
+      headers: { ...headers, "Content-Type": "application/json" },
+      body: JSON.stringify({ text: "timeout", datasets: ["your-dataset-id"], limit: 10 }),
+    }).then((r) => r.json());
+
+    for (const result of envelope.results) {
+      console.log(result.score, result.body?.slice(0, 120));
+    }
+    ```
+    </CodeGroup>
   </Step>
 
-  <Step title="Edit safely">
-    Keep product code documentation out of this repository until we intentionally add it.
+  <Step title="Read the response envelope">
+    Every search — text, SQL, or semantic — returns the same shape. The fields tell you what came back and whether more exists.
+
+    ```json
+    {
+      "search_id": "srch_8f2c...",
+      "mode": "text",
+      "datasets": ["your-dataset-id"],
+      "returned": 10,
+      "limit": 10,
+      "total": { "value": 1240, "relation": "eq" },
+      "has_more": true,
+      "next_cursor": "eyJvZmZ...",
+      "route": "hot",
+      "wall_ms": 183.4,
+      "results": [
+        {
+          "id": "rec_01H...",
+          "body": "connection timeout after 30s",
+          "snippets": ["connection <em>timeout</em> after 30s"],
+          "score": 12.4,
+          "score_kind": "bm25",
+          "provenance": { "dataset_id": "your-dataset-id", "source": "app-logs", "line": 4821 }
+        }
+      ]
+    }
+    ```
+
+    Keep the `search_id`. It is a handle you can use to page deeper, export the full result set, or save the query as a view — without re-sending the query body.
   </Step>
 </Steps>
 
 <Check>
-  If you can read this page on the hosted site, the GitHub-to-Mintlify deployment path is working.
+  If `results` is non-empty and you have a `search_id`, your integration is working end to end.
 </Check>
+
+## Next steps
+
+<Columns cols={2}>
+  <Card title="Search model" icon="layer-group" href="/concepts/search-model">
+    Compare text, SQL, and semantic search and when to use each.
+  </Card>
+  <Card title="Handles & cursors" icon="link" href="/concepts/handles-and-cursors">
+    Page through results, export, and re-run queries from a handle.
+  </Card>
+  <Card title="Views" icon="bookmark" href="/concepts/views">
+    Save a query or materialize a result set for repeatable analysis.
+  </Card>
+  <Card title="Authentication" icon="key" href="/authentication">
+    Understand tokens, the tenant header, and roles.
+  </Card>
+</Columns>

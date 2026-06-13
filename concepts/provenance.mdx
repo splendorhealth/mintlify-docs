@@ -1,0 +1,41 @@
+---
+title: "Provenance"
+description: "Every result traces back to the exact source object and line it came from."
+---
+
+Every record Splendor stores carries provenance: a record of where it came from. Provenance travels with the record into the index and comes back on every search result, so you can always trace a result to its origin and trust which tenant it belongs to.
+
+## What provenance contains
+
+Each result includes a `provenance` object:
+
+```json
+{
+  "tenant_id": "acme",
+  "dataset_id": "app-logs",
+  "source": "app-logs",
+  "source_key": "2024/06/01/app-0001.jsonl.gz",
+  "source_etag": "\"9b2cf5...\"",
+  "line": 4821,
+  "transform_version": "v3"
+}
+```
+
+| Field | Meaning |
+| --- | --- |
+| `tenant_id` | The tenant that owns the record. |
+| `dataset_id` | The dataset it belongs to. |
+| `source` / `source_key` | The source and the specific object the record was ingested from. |
+| `source_etag` | The version of that source object, so you can tell which revision produced the record. |
+| `line` | The line or offset within the source object. |
+| `transform_version` | The parser/transform revision that produced the record. |
+
+## Why it matters
+
+- **Traceability.** From any result you can find the exact source object and line, which makes debugging and auditing concrete rather than approximate.
+- **Reproducibility.** `source_etag` and `transform_version` pin a result to a specific revision of the data and the code that parsed it.
+- **Isolation.** `tenant_id` on every record means [tenant isolation](/concepts/tenancy) holds at the data layer, not only at the query layer.
+
+<Info>
+  Provenance is attached at ingestion to every record, so it is present on results across all search modes.
+</Info>

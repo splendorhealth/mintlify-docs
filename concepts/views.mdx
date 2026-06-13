@@ -1,0 +1,53 @@
+---
+title: "Views"
+description: "Save a query or freeze a result set for repeatable, shareable analysis."
+---
+
+A view turns a one-off search into something durable. Instead of re-sending a query body every time, you save it once and refer to it by `view_id`. Views are how you make analysis repeatable and how you hand a result set to another step or person.
+
+## Creating a view
+
+`POST /v1/views` takes a name and exactly one source — either an existing search handle or a full search request:
+
+<CodeGroup>
+```json From a search handle
+{
+  "name": "Timeout errors",
+  "from_search_id": "srch_8f2c..."
+}
+```
+
+```json From a search request
+{
+  "name": "Timeout errors",
+  "search_request": {
+    "text": "timeout",
+    "datasets": ["app-logs"],
+    "semantic": false
+  }
+}
+```
+</CodeGroup>
+
+## Materialized vs. live
+
+A view is one of two kinds, and the distinction matters for reproducibility:
+
+- **Materialized** — the matching records and their rank are frozen at creation. Every read returns the same set. Use materialized views when you need stable, deterministic membership, especially before running SQL or downstream analysis on the results.
+- **Live** — the view stores the query definition and re-runs it on read, so it reflects current data. Useful for dashboards and recurring checks where freshness matters more than a fixed set.
+
+<Info>
+  Semantic search is a candidate universe, not a complete matching set. For deterministic work over semantic results, materialize the view so membership and rank are fixed, then operate on that frozen handle.
+</Info>
+
+## Reading records
+
+`GET /v1/views/{view_id}/records` returns the records in a view. List your views with `GET /v1/views`, rename with `PATCH`, and delete with `DELETE`.
+
+## Cluster views
+
+`POST /v1/views/cluster` builds a view from semantic clustering. You provide seed queries and a similarity threshold, and Splendor groups records by closeness to those seeds. This is useful for organizing a large, fuzzy result space into coherent groups rather than a flat ranked list.
+
+## Views and SQL
+
+Run SQL against materialized views, where record membership and rank are frozen. A live semantic view is a saved query definition; deterministic SQL belongs on a materialized set so results don't shift between runs.

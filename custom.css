@@ -1,0 +1,51 @@
+/*
+ * Splendor visual language for the docs.
+ * Cream base, navy ink, forest accent, sharp corners.
+ * The only sanctioned soft corner is the rotated-square logo mark.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  --splendor-navy: #1a2b3c;
+  --splendor-navy-ink: #111c26;
+  --splendor-cream: #fafaf9;
+  --splendor-forest: #00803d;
+}
+
+/* Monospace for every code surface. */
+code,
+pre,
+kbd,
+tt,
+.font-mono {
+  font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+}
+
+/* Cream page base in light mode (the navy/forest/cream core). */
+html:not(.dark) body {
+  background-color: var(--splendor-cream);
+}
+
+/*
+ * Sharp corners. Splendor squares its corners everywhere except the logo mark,
+ * so flatten the radii on the surfaces Mintlify rounds by default.
+ */
+pre,
+code,
+img,
+video,
+table,
+thead,
+tbody,
+figure,
+blockquote,
+.rounded,
+.rounded-sm,
+.rounded-md,
+.rounded-lg,
+.rounded-xl,
+.rounded-2xl,
+.rounded-3xl {
+  border-radius: 0 !important;
+}

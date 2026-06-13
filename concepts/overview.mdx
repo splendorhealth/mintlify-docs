@@ -1,0 +1,41 @@
+---
+title: "Core concepts"
+description: "The model behind every Splendor endpoint: tenancy, datasets, search, handles, views, and provenance."
+---
+
+A handful of concepts recur across the entire API. Understanding them once makes every endpoint predictable.
+
+<Columns cols={2}>
+  <Card title="Tenancy & isolation" icon="building" href="/concepts/tenancy">
+    Every request acts within one tenant, and data never crosses tenant boundaries.
+  </Card>
+  <Card title="Datasets & schema" icon="table" href="/concepts/datasets">
+    Datasets hold your records and expose a queryable schema and readiness state.
+  </Card>
+  <Card title="Search model" icon="layer-group" href="/concepts/search-model">
+    One envelope spanning text, SQL, and semantic search.
+  </Card>
+  <Card title="Handles & cursors" icon="link" href="/concepts/handles-and-cursors">
+    Page, export, and re-run queries from a handle instead of copying results.
+  </Card>
+  <Card title="Views" icon="bookmark" href="/concepts/views">
+    Save a query or freeze a result set for repeatable analysis.
+  </Card>
+  <Card title="Provenance" icon="fingerprint" href="/concepts/provenance">
+    Trace every result back to the source object and line it came from.
+  </Card>
+</Columns>
+
+## Roles at a glance
+
+Access within a tenant is role-based. The same tenant header selects the workspace; the token's role within that workspace decides what it can do.
+
+| Plane | Who | What they can do |
+| --- | --- | --- |
+| **Member** | Any tenant member | Read and query: search, list datasets and runs, read schemas, create and read views, run exports, upload to a source. |
+| **Admin** | Tenant admins | Everything members can, plus create, change, and delete data: sources, connectors, detections, datasets, ingest tokens, reindex and DLQ operations. |
+| **Staff** | Splendor employees | A separate platform plane (for example, workspace provisioning) that is not part of the customer API. |
+
+Read endpoints are open to any member; operations that mutate or delete require an admin role. See [Authentication](/authentication) for how roles are resolved on each request.
+
+{/* TODO: expand into dedicated Roles, permissions & plans pages, including RBAC-as-a-growth-plan-feature, once the gating change lands. */}

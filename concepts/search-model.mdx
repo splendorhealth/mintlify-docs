@@ -1,0 +1,93 @@
+---
+title: "The search model"
+description: "One request envelope and one response envelope across text, SQL, and semantic search."
+---
+
+Splendor exposes three ways to search, and they share one response shape. Whether you run a keyword query, a SQL projection, or a semantic lookup, you get back the same envelope with the same fields — so you can switch modes without rewriting how you read results.
+
+## The three modes
+
+<Tabs>
+  <Tab title="Text">
+    Keyword and full-text search with relevance ranking. Send `text` (or `q`) with the datasets to search. Scores are `bm25`.
+
+    ```json
+    {
+      "text": "connection timeout",
+      "datasets": ["app-logs"],
+      "limit": 20
+    }
+    ```
+
+    Add structured `where` filters, a `time` range, and `aggregations` to narrow and summarize. A filter-only request (no `text`) browses records that match the filter.
+  </Tab>
+  <Tab title="Semantic">
+    Vector search that retrieves records by meaning rather than exact terms. Set `semantic: true` with query `text`. Scores are `vector` (or `hybrid` when blended).
+
+    ```json
+    {
+      "text": "users can't log in",
+      "datasets": ["support-tickets"],
+      "semantic": true,
+      "limit": 20
+    }
+    ```
+
+    Semantic search is **top-K retrieval**, not a complete matching set, so its `total` is reported as `{"value": null, "relation": "unknown"}`. Use `content_filter` to choose modalities: `text` (default), `images`, or `all` to search both and merge.
+  </Tab>
+  <Tab title="SQL">
+    Query the dataset's inferred schema with SQL. Translate first with `POST /v1/sql/translate` to validate against the schema, then run with `POST /v1/sql/search`.
+
+    SQL responses add a `columns` list, and each result places its projected values in `row`. Scores are `sql`.
+  </Tab>
+</Tabs>
+
+## The response envelope
+
+Every mode returns this shape. The fields make truncation explicit so you never have to guess whether more results exist.
+
+```json
+{
+  "search_id": "srch_...",
+  "mode": "text",
+  "datasets": ["app-logs"],
+  "returned": 20,
+  "limit": 20,
+  "total": { "value": 1240, "relation": "eq" },
+  "has_more": true,
+  "next_cursor": "opaque-or-null",
+  "route": "hot",
+  "wall_ms": 183.4,
+  "results": [ /* normalized results */ ],
+  "aggregations": {}
+}
+```
+
+| Field | Meaning |
+| --- | --- |
+| `search_id` | A [handle](/concepts/handles-and-cursors) for paging, export, or saving a view. |
+| `total` | `{ value, relation }`. `relation` is `eq`, `gte`, or `unknown`. Semantic totals are always `unknown`. |
+| `has_more` / `next_cursor` | Whether more results exist and the opaque cursor to fetch them. |
+| `route` | Where the query executed: `hot`, `cold_lambda`, or `async_export`. |
+| `truncated_reason` | Present when results were capped — for example `max_candidates` or `export_required`. |
+
+Each result is normalized to a common form regardless of mode:
+
+```json
+{
+  "id": "rec_...",
+  "body": "canonical text",
+  "snippets": ["matched text"],
+  "score": 12.4,
+  "score_kind": "bm25",
+  "provenance": { "dataset_id": "...", "source": "...", "line": 123 }
+}
+```
+
+## Readiness gates which modes work
+
+A dataset answers `text` and `sql` queries once it is text-search ready, and `semantic` queries once embeddings are built. Check [readiness](/concepts/datasets#readiness) before relying on a mode. Semantic search additionally requires the tenant's semantic backend to be configured; when it is not, semantic requests return a clear error.
+
+<Tip>
+  Prefer refining a query over walking pages. When `has_more` is true, narrowing your `text`, `where`, or `time` usually beats fetching cursor after cursor — and for exhaustive traversal, use an [export or a view](/concepts/handles-and-cursors) instead.
+</Tip>

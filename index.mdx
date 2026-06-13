@@ -1,14 +1,45 @@
 ---
-title: "Introduction"
-description: "Hello from Splendor's Mintlify docs."
+title: "Splendor API"
+description: "Search, retrieve, and analyze your operational data across full-text, SQL, and semantic modes."
 ---
 
-Welcome to Splendor's documentation site.
+Splendor is a search and retrieval API for your operational data. You ingest datasets — logs, documents, and structured records — and query them through one consistent interface that spans full-text, SQL, and semantic (vector) search. Every record carries provenance back to its source, and every dataset is isolated to your tenant.
 
-<Tip>
-  This is a minimal Mintlify site connected to the Splendor docs repository.
-</Tip>
+The API is organized around a few ideas that recur everywhere:
 
-<Card title="Quickstart" icon="rocket" href="/quickstart">
-  Open the quickstart page to confirm routing and navigation are working.
-</Card>
+- **Datasets** hold your ingested records and expose a schema you can query.
+- **Search** runs over one or more datasets in `text`, `sql`, or `semantic` mode and returns a single shared envelope.
+- **Handles** — a `search_id`, `view_id`, or cursor — let you page, export, and re-run a query without copying results around.
+- **Provenance** ties each result back to the exact source object and line it came from.
+
+## Start here
+
+<Columns cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Run your first search in a few minutes with curl, Python, or TypeScript.
+  </Card>
+  <Card title="Authentication" icon="key" href="/authentication">
+    Authenticate with a bearer token and select your tenant.
+  </Card>
+  <Card title="Core concepts" icon="book-open" href="/concepts/overview">
+    Understand datasets, the search model, handles, views, and provenance.
+  </Card>
+  <Card title="API reference" icon="terminal" href="/quickstart">
+    {/* TODO: point at the API reference tab once the OpenAPI spec is wired. */}
+    Browse every endpoint with request and response schemas.
+  </Card>
+</Columns>
+
+## How a request is shaped
+
+Every authenticated request carries two things: a bearer token that identifies you, and a tenant header that selects which workspace you are acting in.
+
+```bash
+curl https://api.splendor.io/v1/datasets \
+  -H "Authorization: Bearer $SPLENDOR_TOKEN" \
+  -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID"
+```
+
+From there, the same envelope and the same handles apply whether you are running a keyword search, a SQL projection, or a semantic lookup. The next pages walk through each piece.
+
+{/* TODO: confirm the production API base URL (no custom domain is configured in infra yet). */}

@@ -1,0 +1,61 @@
+---
+title: "Handles & cursors"
+description: "Page, export, and re-run queries from a handle instead of copying results around."
+---
+
+A search returns a **handle** — the `search_id` — alongside the first page of results. The handle, not the result blob, is the thing you keep. From it you can page deeper, stream the full result set, or save the query as a [view](/concepts/views), all without re-sending the query body.
+
+## Paging with cursors
+
+When `has_more` is true, the envelope includes an opaque `next_cursor`. Pass it back in the next request to continue from where you left off.
+
+```python
+cursor = None
+while True:
+    body = {"text": "timeout", "datasets": ["app-logs"], "limit": 100}
+    if cursor:
+        body["cursor"] = cursor
+    page = client.post("/v1/search", json=body).json()
+    handle_results(page["results"])
+    if not page["has_more"]:
+        break
+    cursor = page["next_cursor"]
+```
+
+Cursors are opaque and forward-only. There is no offset or page-number pagination — offsets are unstable as data changes and expensive at depth. Cursor continuation is meant for inspecting a bit further, not for exhaustively draining a large result set.
+
+<Warning>
+  Cursors are tenant-bound and expire. Treat `next_cursor` as a short-lived continuation token, not a durable bookmark.
+</Warning>
+
+## Streaming the full result set
+
+To pull every result for a search as newline-delimited JSON, stream from the handle:
+
+```bash
+curl "https://api.splendor.io/v1/searches/$SEARCH_ID/results.jsonl" \
+  -H "Authorization: Bearer $SPLENDOR_TOKEN" \
+  -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID"
+```
+
+Each line is one normalized result. This is the right tool for feeding results into a local script or notebook.
+
+## Choosing the right traversal
+
+<CardGroup cols={3}>
+  <Card title="Cursor" icon="arrow-right">
+    Inspect a little deeper. Short-lived, forward-only.
+  </Card>
+  <Card title="JSONL stream" icon="file-lines">
+    Pull a search's results into a script or notebook.
+  </Card>
+  <Card title="Export or view" icon="box-archive">
+    Durable, exhaustive traversal of large or reusable result sets.
+  </Card>
+</CardGroup>
+
+For reproducible analysis — especially over semantic results, which are a candidate set rather than a complete one — materialize the results into a [view](/concepts/views) or run an export, then operate on that frozen handle.
+
+<Info>
+  Pass handles, not JSON. When building agents or pipelines, hand off the `search_id`, a `view_id`, or the JSONL endpoint rather than copying result dictionaries between steps.
+</Info>

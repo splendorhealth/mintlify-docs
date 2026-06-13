@@ -1,0 +1,28 @@
+---
+title: "Tenancy & isolation"
+description: "How Splendor scopes every request, handle, and record to a single tenant."
+---
+
+A tenant is a workspace. Every dataset, source, view, export, and search result belongs to exactly one tenant, and the API never lets data cross that boundary.
+
+## How a tenant is selected
+
+Each request carries the `X-Splendor-Tenant-Id` header. Splendor verifies that your token has access to that tenant before doing anything else. A single token can reach multiple tenants — `GET /v1/me` lists them — but one request only ever acts within the one you name.
+
+```bash
+curl https://api.splendor.io/v1/search \
+  -H "Authorization: Bearer $SPLENDOR_TOKEN" \
+  -H "X-Splendor-Tenant-Id: acme" \
+  -H "Content-Type: application/json" \
+  -d '{"text": "error", "datasets": ["app-logs"]}'
+```
+
+## Isolation guarantees
+
+- **Queries are tenant-scoped.** A search only ever reads datasets in the selected tenant. There is no cross-tenant query.
+- **Handles are tenant-bound.** A `search_id`, `view_id`, cursor, or export belongs to the tenant that created it. Presenting a handle under a different tenant fails closed.
+- **Records carry their tenant.** Every stored record records its `tenant_id` in [provenance](/concepts/provenance), so isolation holds at the data layer, not just the query layer.
+
+<Warning>
+  A handle created in one tenant cannot be read from another, even with a token that can access both. Re-create the search or view under the tenant you intend to use.
+</Warning>
