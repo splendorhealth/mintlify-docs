@@ -41,7 +41,7 @@ A query like `users cannot log in` will surface records about failed authenticat
 
 - **Totals are approximate.** Semantic search is top-K retrieval, so `total` is reported as `{ "value": null, "relation": "unknown" }`. Do not treat it as an exact count.
 - **Scores are `vector`** (or `hybrid` when blended with text).
-- **Modalities.** Use `content_filter` to choose what to search: `text` (default), `images`, or `all` to search both and merge.
+- **Modalities.** Use `content_filter` to choose what to search: `text` (default), `images`, or `all` to search both and merge. `images` matches on visual similarity, including images [referenced by a record field](/concepts/sources-and-assets#images-referenced-by-records) — so a metadata `where` filter and a visual query can select the same record.
 
 <Info>
   For reproducible analysis over semantic results, materialize them into a [view](/concepts/views) so membership and rank are fixed, then run SQL or export against that handle.
