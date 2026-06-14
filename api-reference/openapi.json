@@ -366,6 +366,9 @@
               "document_embeddings": {
                 "fields": []
               },
+              "filters": {
+                "fields": []
+              },
               "vocabulary": {
                 "fields": []
               }
@@ -621,6 +624,9 @@
               "document_embeddings": {
                 "fields": []
               },
+              "filters": {
+                "fields": []
+              },
               "vocabulary": {
                 "fields": []
               }
@@ -711,6 +717,9 @@
             },
             "semantic_config": {
               "document_embeddings": {
+                "fields": []
+              },
+              "filters": {
                 "fields": []
               },
               "vocabulary": {
@@ -963,6 +972,110 @@
           "propelauth_org_id"
         ],
         "title": "AuthenticatedTenantItem",
+        "type": "object"
+      },
+      "ChildTenantCreateRequest": {
+        "description": "Platform request to provision an isolated child tenant for one of its\nend-customers. The tenant id is Splendor-generated; ``external_id`` is the\nplatform's own mapping key (unique within the platform).",
+        "properties": {
+          "external_id": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Id"
+          },
+          "name": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "ChildTenantCreateRequest",
+        "type": "object"
+      },
+      "ChildTenantListResponse": {
+        "example": {
+          "tenants": [
+            {
+              "created_at": "2026-01-15T09:30:00Z",
+              "external_id": "cus_8210",
+              "name": "Acme Corp",
+              "plan": "standard",
+              "tenant_id": "t-3f9c2a1b7e4d8c6a"
+            }
+          ]
+        },
+        "properties": {
+          "tenants": {
+            "items": {
+              "$ref": "#/components/schemas/ChildTenantResponse"
+            },
+            "title": "Tenants",
+            "type": "array"
+          }
+        },
+        "required": [
+          "tenants"
+        ],
+        "title": "ChildTenantListResponse",
+        "type": "object"
+      },
+      "ChildTenantResponse": {
+        "example": {
+          "created_at": "2026-01-15T09:30:00Z",
+          "external_id": "cus_8210",
+          "name": "Acme Corp",
+          "plan": "standard",
+          "tenant_id": "t-3f9c2a1b7e4d8c6a"
+        },
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "external_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "External Id"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "plan": {
+            "title": "Plan",
+            "type": "string"
+          },
+          "tenant_id": {
+            "title": "Tenant Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tenant_id",
+          "name",
+          "external_id",
+          "plan",
+          "created_at"
+        ],
+        "title": "ChildTenantResponse",
         "type": "object"
       },
       "ClusterViewCreateRequest": {
@@ -1872,7 +1985,8 @@
               "hosted_upload",
               "source",
               "dataset",
-              "object"
+              "object",
+              "tenant"
             ],
             "title": "Scope",
             "type": "string"
@@ -2036,7 +2150,8 @@
               "hosted_upload",
               "source",
               "dataset",
-              "object"
+              "object",
+              "tenant"
             ],
             "title": "Scope",
             "type": "string"
@@ -5520,6 +5635,118 @@
         "title": "ObjectImageUrlResponse",
         "type": "object"
       },
+      "PlatformKeyCreateRequest": {
+        "description": "Platform request (authenticated by an existing platform key) to mint an\nadditional key for itself \u2014 the create half of key rotation.",
+        "properties": {
+          "name": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "PlatformKeyCreateRequest",
+        "type": "object"
+      },
+      "PlatformKeyListResponse": {
+        "example": {
+          "keys": [
+            {
+              "created_at": "2026-01-15T09:30:00Z",
+              "id": 1,
+              "last_used_at": "2026-01-15T09:30:00Z",
+              "name": "production",
+              "revoked_at": null,
+              "token": null
+            }
+          ]
+        },
+        "properties": {
+          "keys": {
+            "items": {
+              "$ref": "#/components/schemas/PlatformKeyResponse"
+            },
+            "title": "Keys",
+            "type": "array"
+          }
+        },
+        "required": [
+          "keys"
+        ],
+        "title": "PlatformKeyListResponse",
+        "type": "object"
+      },
+      "PlatformKeyResponse": {
+        "description": "A platform API key. The plaintext ``token`` is returned only when the key\nis minted; thereafter only the metadata is retrievable.",
+        "example": {
+          "created_at": "2026-01-15T09:30:00Z",
+          "id": 1,
+          "last_used_at": "2026-01-15T09:30:00Z",
+          "name": "production",
+          "revoked_at": null,
+          "token": "splpk.v1.cG9vbC1kYXk.EXAMPLE-secret-shown-once"
+        },
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "integer"
+          },
+          "last_used_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Used At"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "revoked_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revoked At"
+          },
+          "token": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Token"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "created_at"
+        ],
+        "title": "PlatformKeyResponse",
+        "type": "object"
+      },
       "ProvenanceResponse": {
         "properties": {
           "dataset_id": {
@@ -6235,6 +6462,9 @@
           "document_embeddings": {
             "$ref": "#/components/schemas/SemanticDocumentEmbeddingConfig"
           },
+          "filters": {
+            "$ref": "#/components/schemas/SemanticFiltersConfig"
+          },
           "vocabulary": {
             "$ref": "#/components/schemas/SemanticVocabularyConfig"
           }
@@ -6276,6 +6506,50 @@
           "field"
         ],
         "title": "SemanticDocumentFieldConfig",
+        "type": "object"
+      },
+      "SemanticFilterFieldConfig": {
+        "additionalProperties": false,
+        "properties": {
+          "field": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Field",
+            "type": "string"
+          },
+          "type": {
+            "enum": [
+              "keyword",
+              "i64",
+              "f64",
+              "bool",
+              "datetime",
+              "ip"
+            ],
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "field",
+          "type"
+        ],
+        "title": "SemanticFilterFieldConfig",
+        "type": "object"
+      },
+      "SemanticFiltersConfig": {
+        "additionalProperties": false,
+        "properties": {
+          "fields": {
+            "items": {
+              "$ref": "#/components/schemas/SemanticFilterFieldConfig"
+            },
+            "maxItems": 32,
+            "title": "Fields",
+            "type": "array"
+          }
+        },
+        "title": "SemanticFiltersConfig",
         "type": "object"
       },
       "SemanticVocabularyConfig": {
@@ -6496,6 +6770,9 @@
             "document_embeddings": {
               "fields": []
             },
+            "filters": {
+              "fields": []
+            },
             "vocabulary": {
               "fields": []
             }
@@ -6712,6 +6989,9 @@
               },
               "semantic_config": {
                 "document_embeddings": {
+                  "fields": []
+                },
+                "filters": {
                   "fields": []
                 },
                 "vocabulary": {
@@ -7594,6 +7874,402 @@
         "summary": "Get current user",
         "tags": [
           "Identity"
+        ]
+      }
+    },
+    "/v1/platform/keys": {
+      "get": {
+        "description": "Lists your platform's API keys with their creation, revocation, and last-used timestamps. The secret token itself is shown only once, when the key is created.",
+        "operationId": "listPlatformKeys",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformKeyListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "A required backend is temporarily unavailable."
+          }
+        },
+        "summary": "List platform API keys",
+        "tags": [
+          "Platform"
+        ]
+      },
+      "post": {
+        "description": "Mints an additional platform API key for your platform \u2014 the create half of key rotation. The plaintext token is returned once in this response and never again; store it securely, then revoke the old key.",
+        "operationId": "createPlatformKey",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlatformKeyCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformKeyResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "A required backend is temporarily unavailable."
+          }
+        },
+        "summary": "Create a platform API key",
+        "tags": [
+          "Platform"
+        ]
+      }
+    },
+    "/v1/platform/keys/{key_id}": {
+      "delete": {
+        "description": "Revokes one of your platform API keys so it can no longer authenticate. Responds with 404 if the key does not exist or belongs to another platform.",
+        "operationId": "revokePlatformKey",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "key_id",
+            "required": true,
+            "schema": {
+              "title": "Key Id",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "The requested resource was not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "A required backend is temporarily unavailable."
+          }
+        },
+        "summary": "Revoke a platform API key",
+        "tags": [
+          "Platform"
+        ]
+      }
+    },
+    "/v1/platform/tenants": {
+      "get": {
+        "description": "Lists the child tenants your platform has provisioned, including each tenant's generated id, your `external_id` mapping, and its plan.",
+        "operationId": "listPlatformTenants",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChildTenantListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "A required backend is temporarily unavailable."
+          }
+        },
+        "summary": "List child tenants",
+        "tags": [
+          "Platform"
+        ]
+      },
+      "post": {
+        "description": "Provisions a new isolated tenant for one of your end-customers, authenticated by a platform API key. The tenant id is generated by Splendor; pass an optional `external_id` to map it to your own customer id (unique within your platform). Query and ingest into the child by sending its id in the `X-Splendor-Tenant-Id` header with your platform key.",
+        "operationId": "createPlatformTenant",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChildTenantCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChildTenantResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "The request conflicts with the current state of the resource."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "A required backend is temporarily unavailable."
+          }
+        },
+        "summary": "Create a child tenant",
+        "tags": [
+          "Platform"
+        ]
+      }
+    },
+    "/v1/platform/tenants/{tenant_id}": {
+      "delete": {
+        "description": "Permanently tears down a child tenant: enqueues a managed deletion job that purges its indexed documents and semantic vectors, removes its staged uploads, and finally deletes the tenant itself. Returns 202 with the deletion job. Responds with 404 if the tenant does not exist or belongs to a different platform. This cannot be undone.",
+        "operationId": "deletePlatformTenant",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tenant_id",
+            "required": true,
+            "schema": {
+              "title": "Tenant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataDeletionJobResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "The requested resource was not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "A required backend is temporarily unavailable."
+          }
+        },
+        "summary": "Delete a child tenant",
+        "tags": [
+          "Platform"
+        ]
+      },
+      "get": {
+        "description": "Returns one child tenant your platform owns. Responds with 404 if the tenant does not exist or belongs to a different platform.",
+        "operationId": "getPlatformTenant",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tenant_id",
+            "required": true,
+            "schema": {
+              "title": "Tenant Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChildTenantResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "The requested resource was not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "A required backend is temporarily unavailable."
+          }
+        },
+        "summary": "Get a child tenant",
+        "tags": [
+          "Platform"
         ]
       }
     },
@@ -12823,6 +13499,10 @@
     {
       "description": "Resolve the authenticated user and the tenants they can access.",
       "name": "Identity"
+    },
+    {
+      "description": "Build on Splendor as a platform: authenticate with a platform API key to provision an isolated tenant per end-customer and manage your platform keys.",
+      "name": "Platform"
     },
     {
       "description": "List datasets, inspect inferred schemas and readiness, and manage dataset lifecycle including deletion and schema rebuilds.",

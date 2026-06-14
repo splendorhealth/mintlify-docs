@@ -53,6 +53,13 @@
             ]
           },
           {
+            "group": "Build a platform",
+            "pages": [
+              "guides/platform-patterns",
+              "guides/provision-tenants"
+            ]
+          },
+          {
             "group": "Roles, permissions & plans",
             "pages": [
               "roles/permissions",
@@ -83,7 +90,7 @@
     "links": [
       {
         "label": "Console",
-        "href": "https://app.splendor.io"
+        "href": "https://app.withsplendor.com"
       }
     ],
     "primary": {

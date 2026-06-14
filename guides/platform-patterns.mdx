@@ -1,0 +1,69 @@
+---
+title: "Build a platform on Splendor"
+description: "Map your end-customers to isolated tenants, and your content types to datasets."
+---
+
+If you are building a product on top of Splendor — a screenshot search app, a document search feature, an analytics layer for your own customers — you are a **platform**. Your customers each have their own data that must never be visible to another customer. This guide shows how to model that.
+
+## The one rule: a customer is a tenant, not a dataset
+
+A **tenant** is Splendor's hard isolation boundary. Every query, handle, and stored record is scoped to one tenant, and the API never lets data cross that line — it is enforced at the auth, query, handle, and storage layers, independent of your application code.
+
+A **dataset** is a namespace *within* a tenant. Datasets are co-queryable: a single search can target several at once, and there is no per-dataset access control. They organize *kinds of data*, not *owners of data*.
+
+So the mapping for a platform is:
+
+| Splendor concept | Your product |
+| --- | --- |
+| **Platform** | You — the account that holds a platform API key and provisions tenants |
+| **Tenant** | One of *your* end-customers |
+| **Dataset** | A content type or source within one customer (e.g. `screenshots`, `documents`, `comments`) |
+
+<Warning>
+  Do **not** put each end-customer in a dataset inside one shared tenant. Datasets are not an isolation boundary — a single query can read across them, so one missed filter in your code would leak one customer's data to another. Give each customer its own tenant and Splendor enforces the wall for you.
+</Warning>
+
+## How access works
+
+Your backend holds a **platform API key** (a machine-to-machine credential). With it you can:
+
+- Provision a tenant per end-customer (`POST /v1/platform/tenants`).
+- Act inside any of *your* tenants by sending its id in the `X-Splendor-Tenant-Id` header alongside the platform key — search, ingest, export, everything.
+- Tear a tenant down completely when a customer leaves (`DELETE /v1/platform/tenants/{id}`).
+
+A platform key only ever reaches the tenants you created. It cannot reach another platform's tenants, and it is not a Splendor staff credential. Your end-users never authenticate to Splendor directly — your application is the only client.
+
+See [Provision tenants for your customers](/guides/provision-tenants) for the end-to-end flow.
+
+## Worked example: a screenshot search app
+
+Say you run a screenshot search product. Each user's screenshots are private personal data, so each user is a tenant:
+
+- **Tenant** = one of your users.
+- **Dataset** = a device or capture source within that user, e.g. `iphone`, `mac`, `ipad` — or a single `screenshots` dataset with `device` and `captured_at` fields if you prefer to filter rather than partition.
+- **Search** = `content_filter: "images"` with `semantic: true`. A query like *"coffee shop meeting with Sarah"* is encoded into image-embedding space and matches screenshots of that scene, even when they contain no readable text.
+
+When a user signs up you create their tenant; when they delete their account you tear it down.
+
+## Worked example: document search for companies
+
+Say you offer document search to companies. Each company's documents must be isolated, so each company is a tenant:
+
+- **Tenant** = one of your customer companies.
+- **Dataset** = a content type within that company, e.g. `pages`, `comments`, `attachments`.
+- **Search** = full-text, SQL, or `semantic: true` over one or more of those datasets.
+
+## When to deviate
+
+A single shared tenant with a dataset-per-customer is only acceptable when the data is low-sensitivity and you are willing to own isolation in your own application layer (and accept that a bug there can cross customers). For anything personal, confidential, or regulated — screenshots, documents, health or financial data — use tenant-per-customer. It is the design Splendor is built around.
+
+## Next
+
+<Columns cols={2}>
+  <Card title="Provision tenants" icon="layer-group" href="/guides/provision-tenants">
+    Create, use, and delete a customer tenant with a platform API key.
+  </Card>
+  <Card title="Tenancy & isolation" icon="building" href="/concepts/tenancy">
+    The guarantees behind the tenant boundary.
+  </Card>
+</Columns>

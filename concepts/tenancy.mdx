@@ -26,3 +26,7 @@ curl https://api.withsplendor.com/v1/search \
 <Warning>
   A handle created in one tenant cannot be read from another, even with a token that can access both. Re-create the search or view under the tenant you intend to use.
 </Warning>
+
+## Building a platform on Splendor?
+
+If you are putting Splendor underneath your own product and each of *your* customers has data that must stay isolated, give each customer its own tenant — never a shared tenant partitioned by dataset. See [Build a platform on Splendor](/guides/platform-patterns) for the model and [Provision tenants for your customers](/guides/provision-tenants) for the API.
