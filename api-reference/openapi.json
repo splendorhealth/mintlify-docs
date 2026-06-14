@@ -1772,7 +1772,7 @@
               "created_at": "2026-01-15T09:30:00Z",
               "error_message": null,
               "item_id": 1,
-              "item_type": "quickwit_split",
+              "item_type": "object_document",
               "next_attempt_at": null,
               "result": {
                 "deleted_documents": 1240000
@@ -2198,8 +2198,8 @@
                 "document_semantic_search_ready": true,
                 "documents": {
                   "expected": 1240000,
+                  "index_committed": 1240000,
                   "parsed": 1240000,
-                  "quickwit_committed": 1240000,
                   "schema_observed": 1240000,
                   "semantic_embedded": 1240000,
                   "semantic_total": 1240000
@@ -2303,8 +2303,8 @@
               "document_semantic_search_ready": true,
               "documents": {
                 "expected": 1240000,
+                "index_committed": 1240000,
                 "parsed": 1240000,
-                "quickwit_committed": 1240000,
                 "schema_observed": 1240000,
                 "semantic_embedded": 1240000,
                 "semantic_total": 1240000
@@ -2358,8 +2358,8 @@
           "document_semantic_search_ready": true,
           "documents": {
             "expected": 1240000,
+            "index_committed": 1240000,
             "parsed": 1240000,
-            "quickwit_committed": 1240000,
             "schema_observed": 1240000,
             "semantic_embedded": 1240000,
             "semantic_total": 1240000
@@ -4329,8 +4329,8 @@
           "dataset_id": "app-logs",
           "documents": {
             "expected": 1240000,
+            "index_committed": 1240000,
             "parsed": 1240000,
-            "quickwit_committed": 1240000,
             "schema_observed": 1240000,
             "semantic_embedded": 1240000,
             "semantic_total": 1240000
@@ -4990,12 +4990,12 @@
             ],
             "title": "Expected"
           },
-          "parsed": {
-            "title": "Parsed",
+          "index_committed": {
+            "title": "Index Committed",
             "type": "integer"
           },
-          "quickwit_committed": {
-            "title": "Quickwit Committed",
+          "parsed": {
+            "title": "Parsed",
             "type": "integer"
           },
           "schema_observed": {
@@ -5014,7 +5014,7 @@
         "required": [
           "expected",
           "parsed",
-          "quickwit_committed",
+          "index_committed",
           "schema_observed",
           "semantic_total",
           "semantic_embedded"
@@ -5056,8 +5056,8 @@
               "dataset_id": "app-logs",
               "documents": {
                 "expected": 1240000,
+                "index_committed": 1240000,
                 "parsed": 1240000,
-                "quickwit_committed": 1240000,
                 "schema_observed": 1240000,
                 "semantic_embedded": 1240000,
                 "semantic_total": 1240000
@@ -5117,8 +5117,8 @@
           "dataset_id": "app-logs",
           "documents": {
             "expected": 1240000,
+            "index_committed": 1240000,
             "parsed": 1240000,
-            "quickwit_committed": 1240000,
             "schema_observed": 1240000,
             "semantic_embedded": 1240000,
             "semantic_total": 1240000
@@ -6752,8 +6752,8 @@
             "document_semantic_search_ready": true,
             "documents": {
               "expected": 1240000,
+              "index_committed": 1240000,
               "parsed": 1240000,
-              "quickwit_committed": 1240000,
               "schema_observed": 1240000,
               "semantic_embedded": 1240000,
               "semantic_total": 1240000
