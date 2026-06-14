@@ -10,7 +10,7 @@ A dataset is a named collection of records within a tenant. You ingest data into
 `GET /v1/datasets` returns the datasets in the selected tenant. Each entry includes its identifier and current state, which is what you pass to search and export.
 
 ```bash
-curl https://api.splendor.io/v1/datasets \
+curl https://api.withsplendor.com/v1/datasets \
   -H "Authorization: Bearer $SPLENDOR_TOKEN" \
   -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID"
 ```
@@ -39,6 +39,4 @@ Check one dataset with `GET /v1/datasets/{dataset_id}/readiness`, or check many 
 
 Each ingest produces a run you can follow. `GET /v1/ingest/runs` lists runs across your sources and datasets, and `GET /v1/ingest/runs/{ingest_run_id}` reports the progress and readiness of a single run. Use these to confirm that a load finished before you query it.
 
-For how data gets into a dataset in the first place, see the ingestion guides.
-
-{/* TODO: link to the ingest guides (hosted upload, logs, connectors) once they land. */}
+For how data gets into a dataset in the first place, see [Ingest a dataset](/guides/ingest-a-dataset), [Stream logs](/guides/stream-logs), and [Connect a source](/guides/connect-a-source).

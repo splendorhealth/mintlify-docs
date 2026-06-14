@@ -1,0 +1,59 @@
+---
+title: "Run a semantic search"
+description: "Retrieve records by meaning with vector search."
+---
+
+Semantic search retrieves records by meaning rather than exact keywords. It uses the same `/v1/search` endpoint and the same response envelope as text search — you opt in with `semantic: true`.
+
+## Prerequisites
+
+- A dataset whose semantic search is ready. Check [readiness](/concepts/datasets#readiness) first; semantic indexing completes after text indexing.
+
+## Search by meaning
+
+<CodeGroup>
+```bash curl
+curl https://api.withsplendor.com/v1/search \
+  -H "Authorization: Bearer $SPLENDOR_TOKEN" \
+  -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "users cannot log in",
+    "datasets": ["support-tickets"],
+    "semantic": true,
+    "limit": 20
+  }'
+```
+
+```python Python
+envelope = client.post("/v1/search", json={
+    "text": "users cannot log in",
+    "datasets": ["support-tickets"],
+    "semantic": True,
+    "limit": 20,
+}).json()
+```
+</CodeGroup>
+
+A query like `users cannot log in` will surface records about failed authentication, password resets, and locked accounts even when they share no keywords.
+
+## What is different from text search
+
+- **Totals are approximate.** Semantic search is top-K retrieval, so `total` is reported as `{ "value": null, "relation": "unknown" }`. Do not treat it as an exact count.
+- **Scores are `vector`** (or `hybrid` when blended with text).
+- **Modalities.** Use `content_filter` to choose what to search: `text` (default), `images`, or `all` to search both and merge.
+
+<Info>
+  For reproducible analysis over semantic results, materialize them into a [view](/concepts/views) so membership and rank are fixed, then run SQL or export against that handle.
+</Info>
+
+## Related
+
+<Columns cols={2}>
+  <Card title="The search model" icon="layer-group" href="/concepts/search-model">
+    How text, SQL, and semantic search share one envelope.
+  </Card>
+  <Card title="Create a view" icon="bookmark" href="/guides/create-a-view">
+    Freeze a semantic result set for repeatable work.
+  </Card>
+</Columns>

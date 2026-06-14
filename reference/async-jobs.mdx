@@ -1,0 +1,41 @@
+---
+title: "Async jobs"
+description: "The create-then-poll pattern shared by exports, reindexes, deletions, and schema rebuilds."
+---
+
+Long-running operations in Splendor are asynchronous. They follow one pattern: a request creates a job and returns it immediately with a status; you then poll the job until it finishes. Nothing blocks while the work runs.
+
+## The pattern
+
+1. **Create** — the operation returns a job object with an identifier and an initial status (for example `pending` or `running`).
+2. **Poll** — fetch the job by its identifier until its status is terminal (`succeeded`/`completed`, `failed`, or `cancelled`).
+3. **Act** — read the job's result (a download URL, updated readiness, a count).
+
+## Jobs by operation
+
+| Operation | Create | Poll |
+| --- | --- | --- |
+| Export | `POST /v1/export` | `GET /v1/export/{export_id}` |
+| Reindex | `POST /v1/admin/reindex/jobs` | `GET /v1/admin/reindex/jobs/{job_id}` |
+| Data deletion | `DELETE /v1/admin/datasets/{dataset_id}` | `GET /v1/admin/data-deletion-jobs/{job_id}` |
+| Schema rebuild | `POST /v1/admin/datasets/{dataset_id}/schema/rebuild` | `GET /v1/admin/datasets/{dataset_id}/schema/rebuilds/{job_id}` |
+| Ingestion | upload or stream | `GET /v1/ingest/runs/{ingest_run_id}` |
+
+## Polling
+
+Poll on an interval with backoff; there is no need to poll more than every few seconds. Reindex and deletion jobs report per-item progress counts you can surface to users.
+
+```python
+import time
+
+def wait_for_export(client, export_id, interval=3):
+    while True:
+        job = client.get(f"/v1/export/{export_id}").json()
+        if job["status"] in {"completed", "failed"}:
+            return job
+        time.sleep(interval)
+```
+
+<Note>
+  Reindex jobs can be cancelled while in flight with `POST /v1/admin/reindex/jobs/{job_id}/cancel`. Data-deletion jobs run through the managed deletion worker and cannot be cancelled once started.
+</Note>

@@ -36,6 +36,4 @@ Access within a tenant is role-based. The same tenant header selects the workspa
 | **Admin** | Tenant admins | Everything members can, plus create, change, and delete data: sources, connectors, detections, datasets, ingest tokens, reindex and DLQ operations. |
 | **Staff** | Splendor employees | A separate platform plane (for example, workspace provisioning) that is not part of the customer API. |
 
-Read endpoints are open to any member; operations that mutate or delete require an admin role. See [Authentication](/authentication) for how roles are resolved on each request.
-
-{/* TODO: expand into dedicated Roles, permissions & plans pages, including RBAC-as-a-growth-plan-feature, once the gating change lands. */}
+Read endpoints are open to any member; operations that mutate or delete require an admin role. See [Roles & permissions](/roles/permissions) for the full breakdown and [Plans & RBAC](/roles/plans) for how enforcement is enabled.

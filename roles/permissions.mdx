@@ -1,0 +1,46 @@
+---
+title: "Roles & permissions"
+description: "What members and admins can do within a tenant."
+---
+
+Access within a tenant is role-based. The `X-Splendor-Tenant-Id` header selects the workspace; the token's role within that workspace decides what it can do.
+
+## The roles
+
+- **Member** — read and query. Members can search, list datasets and runs, read schemas, create and read views, run exports, and upload to a source.
+- **Admin** — everything members can do, plus operations that create, change, or delete data: sources, connectors, detections, datasets, ingest tokens, reindex and dead-letter-queue actions, and field promotion.
+
+Splendor employees operate a separate **platform plane** (for example, provisioning workspaces) that is not part of the customer API and is not documented here.
+
+## What requires admin
+
+| Area | Member | Admin |
+| --- | --- | --- |
+| Search, SQL, semantic | ✅ | ✅ |
+| Read datasets, schemas, readiness | ✅ | ✅ |
+| Views (create, read, delete) | ✅ | ✅ |
+| Exports | ✅ | ✅ |
+| Upload to a source / stream logs | ✅ | ✅ |
+| Read sources, connectors, detections | ✅ | ✅ |
+| Read audit, usage, DLQ, jobs | ✅ | ✅ |
+| Create / update / delete sources & connectors | — | ✅ |
+| Create / update / delete detections | — | ✅ |
+| Delete a dataset, rebuild schema, reindex | — | ✅ |
+| Rotate / revoke ingest tokens | — | ✅ |
+| Retry dead-letter failures, promote fields | — | ✅ |
+
+When a member calls an admin-only operation, the API returns `403`.
+
+## Checking a caller's role
+
+`GET /v1/me` returns the caller's role and effective capability per tenant:
+
+```json
+{
+  "tenants": [
+    { "tenant_id": "acme", "role": "Admin", "is_admin": true, "plan": "growth", "rbac_enabled": true }
+  ]
+}
+```
+
+`is_admin` reflects whether the caller can perform admin operations in that tenant. How it is derived depends on the tenant's plan — see [Plans & RBAC](/roles/plans).

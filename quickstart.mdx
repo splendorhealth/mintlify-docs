@@ -7,7 +7,7 @@ This guide takes you from credentials to your first search result. By the end yo
 
 ## Prerequisites
 
-- A Splendor API token and your tenant ID. Both are available from the [console](https://app.splendor.io) under your workspace settings.
+- A Splendor API token and your tenant ID. Both are available from the [console](https://app.withsplendor.com) under your workspace settings.
 - At least one dataset that has finished ingesting. New to ingestion? See [Datasets & schema](/concepts/datasets).
 
 <Tip>
@@ -27,7 +27,7 @@ This guide takes you from credentials to your first search result. By the end yo
 
     <CodeGroup>
     ```bash curl
-    curl https://api.splendor.io/v1/datasets \
+    curl https://api.withsplendor.com/v1/datasets \
       -H "Authorization: Bearer $SPLENDOR_TOKEN" \
       -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID"
     ```
@@ -36,7 +36,7 @@ This guide takes you from credentials to your first search result. By the end yo
     import os, httpx
 
     client = httpx.Client(
-        base_url="https://api.splendor.io",
+        base_url="https://api.withsplendor.com",
         headers={
             "Authorization": f"Bearer {os.environ['SPLENDOR_TOKEN']}",
             "X-Splendor-Tenant-Id": os.environ["SPLENDOR_TENANT_ID"],
@@ -48,7 +48,7 @@ This guide takes you from credentials to your first search result. By the end yo
     ```
 
     ```typescript TypeScript
-    const base = "https://api.splendor.io";
+    const base = "https://api.withsplendor.com";
     const headers = {
       Authorization: `Bearer ${process.env.SPLENDOR_TOKEN}`,
       "X-Splendor-Tenant-Id": process.env.SPLENDOR_TENANT_ID!,
@@ -67,7 +67,7 @@ This guide takes you from credentials to your first search result. By the end yo
 
     <CodeGroup>
     ```bash curl
-    curl https://api.splendor.io/v1/search \
+    curl https://api.withsplendor.com/v1/search \
       -H "Authorization: Bearer $SPLENDOR_TOKEN" \
       -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID" \
       -H "Content-Type: application/json" \

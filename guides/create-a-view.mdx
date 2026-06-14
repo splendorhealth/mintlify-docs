@@ -1,0 +1,59 @@
+---
+title: "Create a view"
+description: "Save a query or freeze a result set you can re-read and analyze."
+---
+
+A view turns a search into something durable and reusable. Create one from an existing search handle or from a full search request. See [Views](/concepts/views) for the concepts; this guide shows the calls.
+
+## From a search handle
+
+If you just ran a search, pass its `search_id`:
+
+```bash
+curl https://api.withsplendor.com/v1/views \
+  -H "Authorization: Bearer $SPLENDOR_TOKEN" \
+  -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Timeout errors", "from_search_id": "srch_8f2c..."}'
+```
+
+## From a search request
+
+Or define the query inline so the view captures it directly:
+
+```bash
+curl https://api.withsplendor.com/v1/views \
+  -H "Authorization: Bearer $SPLENDOR_TOKEN" \
+  -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Timeout errors",
+    "search_request": {"text": "timeout", "datasets": ["app-logs"]}
+  }'
+```
+
+## Read the records
+
+Fetch a view's records by its `view_id`:
+
+```bash
+curl https://api.withsplendor.com/v1/views/view_.../records \
+  -H "Authorization: Bearer $SPLENDOR_TOKEN" \
+  -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID"
+```
+
+## Cluster a result space
+
+To group a large, fuzzy result set into coherent clusters, create a cluster view from seed queries:
+
+```bash
+curl https://api.withsplendor.com/v1/views/cluster \
+  -H "Authorization: Bearer $SPLENDOR_TOKEN" \
+  -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID" \
+  -H "Content-Type: application/json" \
+  -d '{"seed_queries": ["login failures", "password reset"], "datasets": ["support-tickets"]}'
+```
+
+<Info>
+  Use a **materialized** view when you need fixed membership for deterministic SQL or analysis. A **live** view re-runs its query on read for freshness. See [Views](/concepts/views#materialized-vs-live).
+</Info>

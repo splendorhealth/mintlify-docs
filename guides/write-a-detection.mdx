@@ -1,0 +1,52 @@
+---
+title: "Write a detection"
+description: "Define a rule that runs on a schedule and notifies a webhook when it matches."
+---
+
+Detections evaluate your data on a schedule and call a webhook when a condition is met. A rule is either a **threshold** over a query or a **code** detection that runs custom logic. Creating and editing detections requires an admin role.
+
+## Threshold detection
+
+A threshold rule runs a query and compares a count or aggregate against a threshold.
+
+```bash
+curl https://api.withsplendor.com/v1/admin/detections \
+  -H "Authorization: Bearer $SPLENDOR_TOKEN" \
+  -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "High error rate",
+    "kind": "threshold",
+    "query": {"text": "level:error", "datasets": ["app-logs"]},
+    "condition_type": "count_gt",
+    "threshold": 100,
+    "schedule_cron": "*/5 * * * *",
+    "webhook_url": "https://hooks.example.com/splendor"
+  }'
+```
+
+## Code detection
+
+A code detection runs custom logic against the data. Test it before saving — `POST /v1/admin/detections/test` dry-runs the code and returns its output and logs without creating a rule.
+
+```bash
+curl https://api.withsplendor.com/v1/admin/detections/test \
+  -H "Authorization: Bearer $SPLENDOR_TOKEN" \
+  -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID" \
+  -H "Content-Type: application/json" \
+  -d '{"code": "# your detection logic"}'
+```
+
+Once it behaves as expected, create the rule with `"kind": "code"` and the `code` field set.
+
+## Review runs
+
+Each execution is recorded. List a rule's runs to see when it triggered and whether the webhook was delivered:
+
+```bash
+curl https://api.withsplendor.com/v1/admin/detections/{rule_id}/runs \
+  -H "Authorization: Bearer $SPLENDOR_TOKEN" \
+  -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID"
+```
+
+See the [Detections](/api-reference/detections/list-detections) reference for every field.

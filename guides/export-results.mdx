@@ -1,0 +1,51 @@
+---
+title: "Export results"
+description: "Export a search's full result set and download it when ready."
+---
+
+Exports give you every record matching a search, written to a file you download. Use an export — rather than paging cursors — when you need exhaustive, durable output.
+
+## Steps
+
+<Steps>
+  <Step title="Create the export">
+    Send a search request with an export format. The response returns an `export_id` and a status; the export runs asynchronously.
+
+    ```bash
+    curl https://api.withsplendor.com/v1/export \
+      -H "Authorization: Bearer $SPLENDOR_TOKEN" \
+      -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "text": "timeout",
+        "datasets": ["app-logs"],
+        "format": "ndjson",
+        "max_rows": 1000000
+      }'
+    ```
+  </Step>
+
+  <Step title="Poll for completion">
+    Check the export until its status is complete. The response then includes a download location.
+
+    ```bash
+    curl https://api.withsplendor.com/v1/export/exp_... \
+      -H "Authorization: Bearer $SPLENDOR_TOKEN" \
+      -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID"
+    ```
+  </Step>
+
+  <Step title="Download the file">
+    Fetch the `download_url` from the completed export. Exports support `ndjson` and `csv`.
+  </Step>
+</Steps>
+
+<Tip>
+  Delete exports you no longer need with `DELETE /v1/export/{export_id}`; this removes the stored artifact.
+</Tip>
+
+## Export vs. cursor vs. view
+
+- **Export** — exhaustive, downloadable output of a large result set.
+- **[Cursor](/concepts/handles-and-cursors)** — inspect a little deeper, interactively.
+- **[View](/concepts/views)** — a reusable, named result set you can re-read or run SQL against.

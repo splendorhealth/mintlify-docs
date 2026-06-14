@@ -1,0 +1,94 @@
+---
+title: "Ingest a dataset"
+description: "Create a hosted source and upload a file so its records become searchable."
+---
+
+This guide loads data into Splendor through a **hosted source** — storage Splendor manages for you — using a resumable multipart upload. By the end you will have a dataset you can search.
+
+## Prerequisites
+
+- An admin role in the tenant (creating sources requires admin).
+- A file of records to upload (for example, newline-delimited JSON).
+
+## Steps
+
+<Steps>
+  <Step title="Create a hosted source">
+    A source declares where data lands and which dataset it feeds. Create a hosted source once; reuse it for every upload.
+
+    ```bash
+    curl https://api.withsplendor.com/v1/admin/hosted-sources \
+      -H "Authorization: Bearer $SPLENDOR_TOKEN" \
+      -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "source_key": "app-logs",
+        "name": "Application logs",
+        "dataset_id": "app-logs",
+        "source_type": "hosted",
+        "format": "jsonl"
+      }'
+    ```
+  </Step>
+
+  <Step title="Initiate an upload">
+    Start an upload session for your file. The response tells you whether to upload in a single request or in parts, and returns an `upload_session_id`.
+
+    ```bash
+    curl https://api.withsplendor.com/v1/ingest/sources/app-logs/uploads \
+      -H "Authorization: Bearer $SPLENDOR_TOKEN" \
+      -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID" \
+      -H "Content-Type: application/json" \
+      -d '{"object_size_bytes": 5242880, "content_type": "application/x-ndjson", "filename": "app-0001.jsonl"}'
+    ```
+  </Step>
+
+  <Step title="Sign and upload the parts">
+    Request presigned URLs for your part numbers, then `PUT` each chunk directly to the returned URL. Keep the `ETag` each upload returns.
+
+    ```bash
+    curl https://api.withsplendor.com/v1/ingest/sources/app-logs/uploads/parts \
+      -H "Authorization: Bearer $SPLENDOR_TOKEN" \
+      -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID" \
+      -H "Content-Type: application/json" \
+      -d '{"upload_session_id": "ups_...", "part_numbers": [1]}'
+    ```
+  </Step>
+
+  <Step title="Complete the upload">
+    Finalize the upload with the part numbers and their ETags. This enqueues the object for ingestion.
+
+    ```bash
+    curl https://api.withsplendor.com/v1/ingest/sources/app-logs/uploads/complete \
+      -H "Authorization: Bearer $SPLENDOR_TOKEN" \
+      -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID" \
+      -H "Content-Type: application/json" \
+      -d '{"upload_session_id": "ups_...", "parts": [{"part_number": 1, "etag": "\"...\""}]}'
+    ```
+  </Step>
+
+  <Step title="Wait until it is searchable">
+    Ingestion is asynchronous. Poll the upload's readiness until text and semantic search are ready.
+
+    ```bash
+    curl https://api.withsplendor.com/v1/ingest/sources/app-logs/uploads/ups_.../readiness \
+      -H "Authorization: Bearer $SPLENDOR_TOKEN" \
+      -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID"
+    ```
+  </Step>
+</Steps>
+
+<Check>
+  When readiness reports `text_search` (and, if configured, `semantic_search`) ready, [run a search](/quickstart) against the dataset.
+</Check>
+
+## Related
+
+<Columns cols={2}>
+  <Card title="Stream logs" icon="scroll" href="/guides/stream-logs">
+    Send log records continuously instead of uploading files.
+  </Card>
+  <Card title="Connect a source" icon="plug" href="/guides/connect-a-source">
+    Pull from a third-party system with a connector.
+  </Card>
+</Columns>

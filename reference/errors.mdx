@@ -1,0 +1,65 @@
+---
+title: "Errors"
+description: "The error envelope, HTTP status codes, and machine-readable error codes."
+---
+
+Splendor uses conventional HTTP status codes and returns a consistent error envelope. The `2xx` range means success, `4xx` means the request was rejected, and `5xx` means a server-side or upstream problem.
+
+## The error envelope
+
+Every error response has a `detail` field. For most errors it is a human-readable string; for validation and capacity errors it is a structured object with a stable `code` and a `message`.
+
+<CodeGroup>
+```json String detail
+{ "detail": "Dataset not found" }
+```
+
+```json Structured detail
+{
+  "detail": {
+    "code": "semantic_search_capacity_exhausted",
+    "message": "Semantic search capacity is temporarily exhausted; retry shortly."
+  }
+}
+```
+</CodeGroup>
+
+Request validation errors (`422`) use the standard schema-validation shape, with a `detail` array describing each invalid field.
+
+## Status codes
+
+| Status | Meaning |
+| --- | --- |
+| `400` | The request is invalid. |
+| `401` | The bearer token is missing, malformed, or expired. |
+| `403` | The token lacks access to the tenant, or the role the operation requires. |
+| `404` | The resource does not exist. |
+| `409` | The request conflicts with the current state of the resource. |
+| `410` | A search handle, cursor, or view has expired. Re-run the search or re-create the view. |
+| `422` | The request failed schema validation. |
+| `502` | An upstream provider request failed. |
+| `503` | A required backend is temporarily unavailable or at capacity. |
+
+## Machine-readable codes
+
+Structured errors carry a `code` you can branch on. The most common:
+
+| Code | Status | Meaning |
+| --- | --- | --- |
+| `semantic_query_text_required` | `400` | Semantic search needs non-empty `text`. |
+| `semantic_query_dataset_required` | `400` | Semantic search needs at least one dataset. |
+| `semantic_query_unsupported` | `400` | The request shape is not supported for semantic search. |
+| `semantic_vector_backend_unconfigured` | `503` | Semantic search is not configured for this tenant. |
+| `semantic_search_capacity_exhausted` | `503` | Semantic search is temporarily at capacity. |
+| `semantic_provider_capacity_exhausted` | `503` | The embedding/reranking provider is at capacity. |
+| `cold_search_capacity_exhausted` | `503` | Cold-tier search is temporarily at capacity. |
+| `semantic_provider_request_failed` | `502` | The embedding/reranking provider request failed. |
+| `semantic_vector_backend_request_failed` | `502` | The vector backend request failed. |
+
+## Retrying
+
+Capacity errors (`503`) are transient. They include a `Retry-After` header indicating how long to wait before retrying. Back off and retry rather than failing the request outright.
+
+<Tip>
+  Branch on the `code` for structured errors and on the HTTP status otherwise. Treat `5xx` as retryable with backoff (honoring `Retry-After` on `503`); treat `4xx` as something to fix in the request.
+</Tip>

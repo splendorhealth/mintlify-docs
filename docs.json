@@ -39,6 +39,33 @@
               "concepts/views",
               "concepts/provenance"
             ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/ingest-a-dataset",
+              "guides/stream-logs",
+              "guides/connect-a-source",
+              "guides/semantic-search",
+              "guides/export-results",
+              "guides/create-a-view",
+              "guides/write-a-detection"
+            ]
+          },
+          {
+            "group": "Roles, permissions & plans",
+            "pages": [
+              "roles/permissions",
+              "roles/plans"
+            ]
+          },
+          {
+            "group": "Platform reference",
+            "pages": [
+              "reference/errors",
+              "reference/rate-limits",
+              "reference/async-jobs"
+            ]
           }
         ]
       },

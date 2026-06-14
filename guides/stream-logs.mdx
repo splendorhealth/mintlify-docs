@@ -1,0 +1,57 @@
+---
+title: "Stream logs"
+description: "Send structured log records to a source for continuous ingestion."
+---
+
+When you have a stream of log records rather than a file, post them directly to a source. Splendor accepts a batch and processes it asynchronously.
+
+## Prerequisites
+
+- A source to ingest into (see [Ingest a dataset](/guides/ingest-a-dataset) for creating one).
+- An ingest token, or your bearer token with access to the tenant.
+
+## Send a batch
+
+`POST /v1/ingest/sources/{source_key}/logs` accepts a batch of records and returns `202 Accepted`. The records are queued and become searchable once indexed.
+
+<CodeGroup>
+```bash curl
+curl https://api.withsplendor.com/v1/ingest/sources/app-logs/logs \
+  -H "Authorization: Bearer $SPLENDOR_TOKEN" \
+  -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "records": [
+      {"level": "error", "message": "connection timeout after 30s", "service": "checkout"},
+      {"level": "info", "message": "request completed", "service": "checkout"}
+    ]
+  }'
+```
+
+```python Python
+client.post(
+    "/v1/ingest/sources/app-logs/logs",
+    json={"records": [
+        {"level": "error", "message": "connection timeout after 30s", "service": "checkout"},
+        {"level": "info", "message": "request completed", "service": "checkout"},
+    ]},
+)
+```
+</CodeGroup>
+
+The response includes how many records were `received` and a `fragment_id` for the batch.
+
+<Note>
+  A `202` means the batch was accepted, not that it is searchable yet. Track progress with [ingest runs](/concepts/datasets#tracking-ingestion) or dataset [readiness](/concepts/datasets#readiness).
+</Note>
+
+## Related
+
+<Columns cols={2}>
+  <Card title="Ingest a dataset" icon="upload" href="/guides/ingest-a-dataset">
+    Upload a file through a hosted source.
+  </Card>
+  <Card title="Run a search" icon="magnifying-glass" href="/quickstart">
+    Query the logs once they are indexed.
+  </Card>
+</Columns>

@@ -33,7 +33,7 @@ Cursors are opaque and forward-only. There is no offset or page-number paginatio
 To pull every result for a search as newline-delimited JSON, stream from the handle:
 
 ```bash
-curl "https://api.splendor.io/v1/searches/$SEARCH_ID/results.jsonl" \
+curl "https://api.withsplendor.com/v1/searches/$SEARCH_ID/results.jsonl" \
   -H "Authorization: Bearer $SPLENDOR_TOKEN" \
   -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID"
 ```

@@ -10,7 +10,7 @@ A tenant is a workspace. Every dataset, source, view, export, and search result 
 Each request carries the `X-Splendor-Tenant-Id` header. Splendor verifies that your token has access to that tenant before doing anything else. A single token can reach multiple tenants — `GET /v1/me` lists them — but one request only ever acts within the one you name.
 
 ```bash
-curl https://api.splendor.io/v1/search \
+curl https://api.withsplendor.com/v1/search \
   -H "Authorization: Bearer $SPLENDOR_TOKEN" \
   -H "X-Splendor-Tenant-Id: acme" \
   -H "Content-Type: application/json" \

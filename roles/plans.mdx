@@ -1,0 +1,31 @@
+---
+title: "Plans & RBAC"
+description: "How role enforcement (RBAC) is enabled by your plan."
+---
+
+Role-based access control — enforcing the difference between members and admins — is a feature of the **growth** plan. Whether it is active changes how roles behave across your tenant.
+
+## How enforcement depends on your plan
+
+Each tenant has a plan, reported as `plan` on `GET /v1/me` along with a derived `rbac_enabled` flag:
+
+- **Standard plan (`rbac_enabled: false`)** — role distinctions are **not enforced**. Every member acts with admin privileges, so everyone can manage sources, detections, and data. `is_admin` is `true` for all members.
+- **Growth plan (`rbac_enabled: true`)** — roles **are enforced**. Only admins can perform admin operations; members are limited to read and query, and admin-only calls from members return `403`. `is_admin` reflects the caller's actual role.
+
+```json
+{
+  "tenants": [
+    { "tenant_id": "acme", "plan": "growth", "rbac_enabled": true, "role": "Member", "is_admin": false }
+  ]
+}
+```
+
+## What this means for your integration
+
+- **Build against the role model.** Read [Roles & permissions](/roles/permissions) and treat admin operations as admin-only. On the standard plan they happen to succeed for everyone; on the growth plan they are enforced. Building to the role model means your integration behaves correctly under both.
+- **Check `is_admin`, not `role`.** Use the `is_admin` flag from `/v1/me` to decide whether to surface admin actions — it already accounts for the plan.
+- **Expect `403` on the growth plan.** A member calling an admin operation receives `403` once RBAC is enabled.
+
+<Note>
+  Plans are set by Splendor. To enable RBAC for your tenant, talk to your Splendor contact about the growth plan.
+</Note>

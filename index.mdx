@@ -24,8 +24,7 @@ The API is organized around a few ideas that recur everywhere:
   <Card title="Core concepts" icon="book-open" href="/concepts/overview">
     Understand datasets, the search model, handles, views, and provenance.
   </Card>
-  <Card title="API reference" icon="terminal" href="/quickstart">
-    {/* TODO: point at the API reference tab once the OpenAPI spec is wired. */}
+  <Card title="API reference" icon="terminal" href="/api-reference/identity/get-current-user">
     Browse every endpoint with request and response schemas.
   </Card>
 </Columns>
@@ -35,11 +34,9 @@ The API is organized around a few ideas that recur everywhere:
 Every authenticated request carries two things: a bearer token that identifies you, and a tenant header that selects which workspace you are acting in.
 
 ```bash
-curl https://api.splendor.io/v1/datasets \
+curl https://api.withsplendor.com/v1/datasets \
   -H "Authorization: Bearer $SPLENDOR_TOKEN" \
   -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID"
 ```
 
 From there, the same envelope and the same handles apply whether you are running a keyword search, a SQL projection, or a semantic lookup. The next pages walk through each piece.
-
-{/* TODO: confirm the production API base URL (no custom domain is configured in infra yet). */}

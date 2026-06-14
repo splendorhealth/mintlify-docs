@@ -1,0 +1,48 @@
+---
+title: "Rate limits & capacity"
+description: "How Splendor sheds load under capacity pressure and how to back off."
+---
+
+Splendor protects shared backends — full-text search, the vector store, and the embedding and reranking providers — by shedding load when they are saturated, rather than letting requests pile up.
+
+## Capacity shedding
+
+When a backend is temporarily at capacity, the request returns `503` with a structured [error code](/reference/errors#machine-readable-codes) and a `Retry-After` header:
+
+```json
+{
+  "detail": {
+    "code": "semantic_search_capacity_exhausted",
+    "message": "Semantic search capacity is temporarily exhausted; retry shortly."
+  }
+}
+```
+
+The codes you may see under load:
+
+- `semantic_search_capacity_exhausted` — semantic search is saturated.
+- `semantic_provider_capacity_exhausted` — the embedding or reranking provider is saturated.
+- `cold_search_capacity_exhausted` — cold-tier (archival) search is saturated.
+
+## Backing off
+
+When you receive a `503` with `Retry-After`, wait at least that long before retrying, and apply exponential backoff with jitter if it persists.
+
+```python
+import time, httpx
+
+def search_with_retry(client: httpx.Client, body: dict, attempts: int = 5):
+    delay = 1.0
+    for _ in range(attempts):
+        r = client.post("/v1/search", json=body)
+        if r.status_code != 503:
+            return r
+        wait = float(r.headers.get("Retry-After", delay))
+        time.sleep(wait)
+        delay *= 2
+    r.raise_for_status()
+```
+
+<Tip>
+  Capacity errors are transient — retrying after the indicated delay almost always succeeds. Treat them differently from `4xx` errors, which require changing the request.
+</Tip>

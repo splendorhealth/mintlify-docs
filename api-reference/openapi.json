@@ -12816,7 +12816,7 @@
   "servers": [
     {
       "description": "Production",
-      "url": "https://api.splendor.io"
+      "url": "https://api.withsplendor.com"
     }
   ],
   "tags": [

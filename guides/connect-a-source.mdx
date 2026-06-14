@@ -1,0 +1,70 @@
+---
+title: "Connect a source"
+description: "Pull data from a third-party system with an Airbyte-backed connector."
+---
+
+Connectors pull data from third-party systems on a schedule. Splendor uses Airbyte under the hood, so connecting a source is a short sequence: discover, create, authenticate, connect, sync, and hand off to ingestion. All of these require an admin role.
+
+## Steps
+
+<Steps>
+  <Step title="Find a provider and discover its schema">
+    List the available providers, then run discovery to see the streams and fields a provider exposes.
+
+    ```bash
+    curl https://api.withsplendor.com/v1/admin/connector-providers \
+      -H "Authorization: Bearer $SPLENDOR_TOKEN" \
+      -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID"
+    ```
+  </Step>
+
+  <Step title="Create the Airbyte source">
+    Create the source with the provider, destination bucket, and the streams to sync.
+
+    ```bash
+    curl https://api.withsplendor.com/v1/admin/airbyte-sources \
+      -H "Authorization: Bearer $SPLENDOR_TOKEN" \
+      -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID" \
+      -H "Content-Type: application/json" \
+      -d '{ "provider_key": "stripe", "connector_key": "stripe", "connector_name": "Stripe", "source_key": "stripe", "source_name": "Stripe", "dataset_id": "stripe", "bucket": "acme-connectors", "iam_role_arn": "arn:aws:iam::123456789012:role/acme-splendor" }'
+    ```
+  </Step>
+
+  <Step title="Provision and authenticate">
+    Provision the source, then complete authentication. For OAuth providers, send the user through the returned consent URL and finish with the OAuth completion endpoint.
+
+    ```bash
+    curl https://api.withsplendor.com/v1/admin/airbyte-sources/{source_id}/provision \
+      -H "Authorization: Bearer $SPLENDOR_TOKEN" \
+      -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID" \
+      -H "Content-Type: application/json" -d '{"source_configuration": {}}'
+    ```
+  </Step>
+
+  <Step title="Create the connection and sync">
+    Create the connection (the mapping from source to destination), then start a sync. Poll the run until it completes.
+
+    ```bash
+    curl https://api.withsplendor.com/v1/admin/airbyte-sources/{source_id}/sync \
+      -H "Authorization: Bearer $SPLENDOR_TOKEN" \
+      -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID" \
+      -H "Content-Type: application/json" -d '{"trigger": "manual"}'
+    ```
+  </Step>
+
+  <Step title="Hand off to ingestion">
+    Once a sync has landed data, enqueue ingestion to make it searchable.
+
+    ```bash
+    curl https://api.withsplendor.com/v1/admin/airbyte-sources/{source_id}/enqueue-ingest \
+      -H "Authorization: Bearer $SPLENDOR_TOKEN" \
+      -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID" -X POST
+    ```
+  </Step>
+</Steps>
+
+<Tip>
+  For a simpler push-based flow, upload files with a [hosted source](/guides/ingest-a-dataset) or [stream logs](/guides/stream-logs) instead.
+</Tip>
+
+See the [Connectors & Airbyte](/api-reference/connectors-&-airbyte/list-connector-providers) reference for every field and response.
