@@ -7,7 +7,7 @@ Public developer documentation for the Splendor API, built on [Mintlify](https:/
 - Pages are MDX files with YAML frontmatter. Site configuration lives in `docs.json`.
 - Brand styling lives in `custom.css` (cream base, navy ink, forest accent, sharp corners).
 - For Mintlify product knowledge, install the skill: `npx skills add https://mintlify.com/docs`.
-- The API reference is generated from the Splendor FastAPI OpenAPI spec (committed under `api-reference/`), not hand-written. Regenerate it with `make openapi` in the product repo and copy the result here.
+- The API reference is generated from the Splendor FastAPI OpenAPI spec (committed at `api-reference/openapi.json`), not hand-written. To update it: run `make openapi` in the product repo, then `python scripts/sync-openapi.py <path-to>/withsplendor/openapi.json` here (it copies the spec and orders paths by product domain so the sidebar groups read Identity → Datasets → Search → …). Adding an endpoint without re-syncing leaves it out of the sidebar; the product repo's OpenAPI contract test enforces that every endpoint is documented in the spec.
 
 ## Terminology
 

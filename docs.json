@@ -41,6 +41,10 @@
             ]
           }
         ]
+      },
+      {
+        "tab": "API reference",
+        "openapi": "/api-reference/openapi.json"
       }
     ]
   },
