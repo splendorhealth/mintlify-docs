@@ -14,7 +14,7 @@ This guide loads data into Splendor through a **hosted source** — storage Sple
 
 <Steps>
   <Step title="Create a hosted source">
-    A source declares where data lands and which dataset it feeds. Create a hosted source once; reuse it for every upload.
+    A source declares where data lands and which dataset it feeds. Create a hosted source once; reuse it for every upload. You don't declare a format — Splendor detects each object's type as it ingests it, so one source can hold a mix of record files and images (see [Sources, objects & image assets](/concepts/sources-and-assets)).
 
     ```bash
     curl https://api.withsplendor.com/v1/admin/hosted-sources \
@@ -25,8 +25,7 @@ This guide loads data into Splendor through a **hosted source** — storage Sple
         "source_key": "app-logs",
         "name": "Application logs",
         "dataset_id": "app-logs",
-        "source_type": "hosted",
-        "format": "jsonl"
+        "source_type": "hosted"
       }'
     ```
   </Step>

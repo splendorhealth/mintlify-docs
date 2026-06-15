@@ -34,6 +34,7 @@
             "pages": [
               "concepts/tenancy",
               "concepts/datasets",
+              "concepts/sources-and-assets",
               "concepts/search-model",
               "concepts/handles-and-cursors",
               "concepts/views",
