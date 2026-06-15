@@ -47,6 +47,7 @@
               "guides/ingest-a-dataset",
               "guides/stream-logs",
               "guides/connect-a-source",
+              "guides/onboard-a-connector-with-an-agent",
               "guides/semantic-search",
               "guides/export-results",
               "guides/create-a-view",

@@ -1,0 +1,51 @@
+---
+title: "Onboard a connector with an agent"
+description: "Paste a prompt into a coding agent to connect any Airbyte source end to end."
+---
+
+Connecting a source is a sequence of admin API calls: find the connector, discover its schema, decide which fields are semantic, then register, authenticate, and sync. An AI coding agent (Claude Code, Codex, and similar) can run that whole sequence for you — you tell it which source you want and approve the steps. This is the low-code path for the long tail of Airbyte connectors that don't have a dedicated screen.
+
+## Copy the prompt
+
+In the console, open **Sources → New source → Airbyte** and click **Copy agent prompt**. The prompt is pre-filled with your tenant id. Paste it into your coding agent and tell it which source to connect (for example, "Snowflake" or "GitHub").
+
+The agent will ask you for three values before it starts:
+
+- `SPLENDOR_API_BASE` — your API base URL.
+- `SPLENDOR_TENANT_ID` — your tenant id (pre-filled in the copied prompt).
+- `SPLENDOR_TOKEN` — a tenant-admin bearer token, or a platform API key scoped to this tenant.
+
+## What the agent does
+
+The prompt drives the same endpoints as [Connect a source](/guides/connect-a-source), in order:
+
+<Steps>
+  <Step title="Checks support">
+    Searches `GET /v1/admin/airbyte-catalog` for the connector and stops if it isn't available.
+  </Step>
+  <Step title="Inspects the connector">
+    Calls `POST /v1/admin/airbyte-catalog/{source_definition_id}/discover` to read the credential spec and OAuth mode, and summarizes what's required.
+  </Step>
+  <Step title="Registers the source">
+    Calls `POST /v1/admin/airbyte-sources` with the `source_definition_id`, `source_type`, destination bucket, and the streams you choose.
+  </Step>
+  <Step title="Authenticates">
+    For OAuth connectors it hands you a consent URL and finishes via `oauth/complete`; for credential connectors it provisions with the credentials you supply.
+  </Step>
+  <Step title="Classifies fields">
+    Calls `POST /v1/admin/airbyte-sources/{id}/discover-schema`, proposes which fields are document text, vocabulary, or filters, and applies the classification with `PUT /v1/admin/sources/{id}` after you approve.
+  </Step>
+  <Step title="Connects and syncs">
+    Creates the connection, starts a sync, and polls the run to completion.
+  </Step>
+</Steps>
+
+The prompt instructs the agent to show you exactly what it will send before each write and to summarize the result once the source is connected.
+
+## OAuth needs a person
+
+Credential-based connectors (most databases, API-key sources) are fully hands-off once you provide the credentials. OAuth connectors (such as Slack or Gmail) need a human to approve consent in a browser: the agent gives you the consent URL, you approve, and the agent resumes with the callback parameters. The agent can't complete OAuth on its own.
+
+<Tip>
+  Want to run the steps yourself instead of through an agent? [Connect a source](/guides/connect-a-source) lists the same calls as copy-paste `curl` commands.
+</Tip>

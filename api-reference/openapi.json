@@ -111,6 +111,197 @@
         "title": "AggregationRequest",
         "type": "object"
       },
+      "AirbyteCatalogItem": {
+        "properties": {
+          "docker_image_tag": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Docker Image Tag"
+          },
+          "docker_repository": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Docker Repository"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "source_definition_id": {
+            "title": "Source Definition Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_definition_id",
+          "name",
+          "docker_repository",
+          "docker_image_tag"
+        ],
+        "title": "AirbyteCatalogItem",
+        "type": "object"
+      },
+      "AirbyteCatalogResponse": {
+        "examples": [
+          {
+            "connectors": [
+              {
+                "docker_image_tag": "2.0.0",
+                "docker_repository": "airbyte/source-slack",
+                "name": "Slack",
+                "source_definition_id": "c2281cee-86f9-4a86-bb48-d23286b4c7bd"
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "connectors": {
+            "items": {
+              "$ref": "#/components/schemas/AirbyteCatalogItem"
+            },
+            "title": "Connectors",
+            "type": "array"
+          }
+        },
+        "required": [
+          "connectors"
+        ],
+        "title": "AirbyteCatalogResponse",
+        "type": "object"
+      },
+      "AirbyteConnectorDiscoveryResponse": {
+        "example": {
+          "airbyte_workspace_id": "ws_1",
+          "connection_specification": {},
+          "consent_url": "https://connect.airbyte.com/oauth/...",
+          "docker_image_tag": "3.0.0",
+          "docker_repository": "airbyte/source-stripe",
+          "oauth_input_configuration": {},
+          "oauth_mode": "airbyte",
+          "source_definition_id": "def_1",
+          "source_definition_name": "Stripe",
+          "supports_airbyte_oauth": true,
+          "tenant_id": "acme"
+        },
+        "examples": [
+          {
+            "airbyte_workspace_id": "b1f3...",
+            "connection_specification": {
+              "properties": {},
+              "type": "object"
+            },
+            "consent_url": "https://slack.com/oauth/v2/authorize?...",
+            "docker_image_tag": "2.0.0",
+            "docker_repository": "airbyte/source-slack",
+            "oauth_input_configuration": {},
+            "oauth_mode": "airbyte",
+            "source_definition_id": "c2281cee-86f9-4a86-bb48-d23286b4c7bd",
+            "source_definition_name": "Slack",
+            "supports_airbyte_oauth": true,
+            "tenant_id": "t_123"
+          }
+        ],
+        "properties": {
+          "airbyte_workspace_id": {
+            "title": "Airbyte Workspace Id",
+            "type": "string"
+          },
+          "connection_specification": {
+            "additionalProperties": true,
+            "title": "Connection Specification",
+            "type": "object"
+          },
+          "consent_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Consent Url"
+          },
+          "docker_image_tag": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Docker Image Tag"
+          },
+          "docker_repository": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Docker Repository"
+          },
+          "oauth_input_configuration": {
+            "additionalProperties": true,
+            "title": "Oauth Input Configuration",
+            "type": "object"
+          },
+          "oauth_mode": {
+            "enum": [
+              "airbyte",
+              "none"
+            ],
+            "title": "Oauth Mode",
+            "type": "string"
+          },
+          "source_definition_id": {
+            "title": "Source Definition Id",
+            "type": "string"
+          },
+          "source_definition_name": {
+            "title": "Source Definition Name",
+            "type": "string"
+          },
+          "supports_airbyte_oauth": {
+            "title": "Supports Airbyte Oauth",
+            "type": "boolean"
+          },
+          "tenant_id": {
+            "title": "Tenant Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tenant_id",
+          "airbyte_workspace_id",
+          "source_definition_id",
+          "source_definition_name",
+          "docker_repository",
+          "docker_image_tag",
+          "oauth_mode",
+          "supports_airbyte_oauth",
+          "consent_url",
+          "oauth_input_configuration",
+          "connection_specification"
+        ],
+        "title": "AirbyteConnectorDiscoveryResponse",
+        "type": "object"
+      },
       "AirbyteIngestHandoffResponse": {
         "example": {
           "bucket": "acme-logs",
@@ -234,10 +425,6 @@
             "title": "Oauth Mode",
             "type": "string"
           },
-          "provider_key": {
-            "title": "Provider Key",
-            "type": "string"
-          },
           "schedule_type": {
             "title": "Schedule Type",
             "type": "string"
@@ -254,7 +441,6 @@
         },
         "required": [
           "source_id",
-          "provider_key",
           "airbyte_source_id",
           "airbyte_source_definition_id",
           "airbyte_source_definition_name",
@@ -269,6 +455,69 @@
           "stream_config"
         ],
         "title": "AirbyteRefItem",
+        "type": "object"
+      },
+      "AirbyteSchemaDiscoveryResponse": {
+        "examples": [
+          {
+            "source_id": 42,
+            "streams": [
+              {
+                "fields": [
+                  {
+                    "path": "text",
+                    "type": "string"
+                  },
+                  {
+                    "path": "user.email",
+                    "type": "string"
+                  },
+                  {
+                    "path": "ts",
+                    "type": "string"
+                  }
+                ],
+                "name": "channel_messages"
+              }
+            ]
+          }
+        ],
+        "properties": {
+          "source_id": {
+            "title": "Source Id",
+            "type": "integer"
+          },
+          "streams": {
+            "items": {
+              "$ref": "#/components/schemas/AirbyteStreamSchemaItem"
+            },
+            "title": "Streams",
+            "type": "array"
+          }
+        },
+        "required": [
+          "source_id",
+          "streams"
+        ],
+        "title": "AirbyteSchemaDiscoveryResponse",
+        "type": "object"
+      },
+      "AirbyteSchemaFieldItem": {
+        "properties": {
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "type": {
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "type"
+        ],
+        "title": "AirbyteSchemaFieldItem",
         "type": "object"
       },
       "AirbyteSourceConnectionRequest": {
@@ -332,7 +581,6 @@
             "cron_expression": null,
             "destination_status": "ready",
             "oauth_mode": "airbyte",
-            "provider_key": "stripe",
             "schedule_type": "manual",
             "source_id": 12,
             "stream_config": {
@@ -348,7 +596,6 @@
             "dataset_id": "app-logs",
             "enabled": true,
             "external_id_configured": false,
-            "format": "jsonl",
             "iam_role_arn": "arn:aws:iam::123456789012:role/acme-splendor",
             "ingest_token_configured": true,
             "ingest_token_created_at": "2026-01-15T09:30:00Z",
@@ -368,6 +615,10 @@
               },
               "filters": {
                 "fields": []
+              },
+              "image_embeddings": {
+                "fields": [],
+                "index_standalone": false
               },
               "vocabulary": {
                 "fields": []
@@ -417,6 +668,12 @@
       },
       "AirbyteSourceOnboardingRequest": {
         "properties": {
+          "airbyte_source_definition_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Airbyte Source Definition Id",
+            "type": "string"
+          },
           "bucket": {
             "maxLength": 255,
             "minLength": 1,
@@ -488,12 +745,6 @@
             "title": "Prefix",
             "type": "string"
           },
-          "provider_key": {
-            "maxLength": 64,
-            "minLength": 1,
-            "title": "Provider Key",
-            "type": "string"
-          },
           "retention_days": {
             "anyOf": [
               {
@@ -519,14 +770,7 @@
             "$ref": "#/components/schemas/SearchConfig"
           },
           "semantic_config": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/SemanticConfig"
-              },
-              {
-                "type": "null"
-              }
-            ]
+            "$ref": "#/components/schemas/SemanticConfig"
           },
           "source_key": {
             "maxLength": 128,
@@ -540,10 +784,17 @@
             "title": "Source Name",
             "type": "string"
           },
+          "source_type": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Source Type",
+            "type": "string"
+          },
           "streams": {
             "items": {
               "type": "string"
             },
+            "minItems": 1,
             "title": "Streams",
             "type": "array"
           },
@@ -554,14 +805,16 @@
           }
         },
         "required": [
-          "provider_key",
+          "airbyte_source_definition_id",
           "connector_key",
           "connector_name",
           "source_key",
           "source_name",
           "dataset_id",
+          "source_type",
           "bucket",
-          "iam_role_arn"
+          "iam_role_arn",
+          "streams"
         ],
         "title": "AirbyteSourceOnboardingRequest",
         "type": "object"
@@ -579,7 +832,6 @@
             "cron_expression": null,
             "destination_status": "ready",
             "oauth_mode": "airbyte",
-            "provider_key": "stripe",
             "schedule_type": "manual",
             "source_id": 12,
             "stream_config": {
@@ -606,7 +858,6 @@
             "dataset_id": "app-logs",
             "enabled": true,
             "external_id_configured": false,
-            "format": "jsonl",
             "iam_role_arn": "arn:aws:iam::123456789012:role/acme-splendor",
             "ingest_token_configured": true,
             "ingest_token_created_at": "2026-01-15T09:30:00Z",
@@ -626,6 +877,10 @@
               },
               "filters": {
                 "fields": []
+              },
+              "image_embeddings": {
+                "fields": [],
+                "index_standalone": false
               },
               "vocabulary": {
                 "fields": []
@@ -685,7 +940,6 @@
             "cron_expression": null,
             "destination_status": "ready",
             "oauth_mode": "airbyte",
-            "provider_key": "stripe",
             "schedule_type": "manual",
             "source_id": 12,
             "stream_config": {
@@ -701,7 +955,6 @@
             "dataset_id": "app-logs",
             "enabled": true,
             "external_id_configured": false,
-            "format": "jsonl",
             "iam_role_arn": "arn:aws:iam::123456789012:role/acme-splendor",
             "ingest_token_configured": true,
             "ingest_token_created_at": "2026-01-15T09:30:00Z",
@@ -721,6 +974,10 @@
               },
               "filters": {
                 "fields": []
+              },
+              "image_embeddings": {
+                "fields": [],
+                "index_standalone": false
               },
               "vocabulary": {
                 "fields": []
@@ -747,6 +1004,27 @@
           "airbyte"
         ],
         "title": "AirbyteSourceProvisionResponse",
+        "type": "object"
+      },
+      "AirbyteStreamSchemaItem": {
+        "properties": {
+          "fields": {
+            "items": {
+              "$ref": "#/components/schemas/AirbyteSchemaFieldItem"
+            },
+            "title": "Fields",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "fields"
+        ],
+        "title": "AirbyteStreamSchemaItem",
         "type": "object"
       },
       "AirbyteSyncRunResponse": {
@@ -1293,275 +1571,6 @@
           "connectors"
         ],
         "title": "ConnectorListResponse",
-        "type": "object"
-      },
-      "ConnectorProviderDiscoveryResponse": {
-        "example": {
-          "airbyte_source_definition_id": "def_1",
-          "airbyte_source_definition_name": "Stripe",
-          "airbyte_workspace_id": "ws_1",
-          "auth_mode": "oauth",
-          "connection_specification": {},
-          "consent_url": "https://connect.airbyte.com/oauth/...",
-          "docker_image_tag": "3.0.0",
-          "docker_repository": "airbyte/source-stripe",
-          "error_message": null,
-          "oauth_input_configuration": {},
-          "oauth_mode": "airbyte",
-          "provider_key": "stripe",
-          "status": "ready",
-          "supports_airbyte_oauth": true,
-          "tenant_id": "acme"
-        },
-        "properties": {
-          "airbyte_source_definition_id": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Airbyte Source Definition Id"
-          },
-          "airbyte_source_definition_name": {
-            "title": "Airbyte Source Definition Name",
-            "type": "string"
-          },
-          "airbyte_workspace_id": {
-            "title": "Airbyte Workspace Id",
-            "type": "string"
-          },
-          "auth_mode": {
-            "enum": [
-              "oauth",
-              "api_key"
-            ],
-            "title": "Auth Mode",
-            "type": "string"
-          },
-          "connection_specification": {
-            "additionalProperties": true,
-            "title": "Connection Specification",
-            "type": "object"
-          },
-          "consent_url": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Consent Url"
-          },
-          "docker_image_tag": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Docker Image Tag"
-          },
-          "docker_repository": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Docker Repository"
-          },
-          "error_message": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Error Message"
-          },
-          "oauth_input_configuration": {
-            "additionalProperties": true,
-            "title": "Oauth Input Configuration",
-            "type": "object"
-          },
-          "oauth_mode": {
-            "enum": [
-              "airbyte",
-              "splendor",
-              "none"
-            ],
-            "title": "Oauth Mode",
-            "type": "string"
-          },
-          "provider_key": {
-            "title": "Provider Key",
-            "type": "string"
-          },
-          "status": {
-            "enum": [
-              "ready",
-              "api_key",
-              "missing_source_definition",
-              "airbyte_oauth_unavailable"
-            ],
-            "title": "Status",
-            "type": "string"
-          },
-          "supports_airbyte_oauth": {
-            "title": "Supports Airbyte Oauth",
-            "type": "boolean"
-          },
-          "tenant_id": {
-            "title": "Tenant Id",
-            "type": "string"
-          }
-        },
-        "required": [
-          "provider_key",
-          "tenant_id",
-          "auth_mode",
-          "airbyte_workspace_id",
-          "airbyte_source_definition_id",
-          "airbyte_source_definition_name",
-          "docker_repository",
-          "docker_image_tag",
-          "status",
-          "oauth_mode",
-          "supports_airbyte_oauth",
-          "consent_url",
-          "oauth_input_configuration",
-          "connection_specification",
-          "error_message"
-        ],
-        "title": "ConnectorProviderDiscoveryResponse",
-        "type": "object"
-      },
-      "ConnectorProviderItem": {
-        "properties": {
-          "airbyte_source_definition_name": {
-            "title": "Airbyte Source Definition Name",
-            "type": "string"
-          },
-          "auth_mode": {
-            "enum": [
-              "oauth",
-              "api_key"
-            ],
-            "title": "Auth Mode",
-            "type": "string"
-          },
-          "default_format": {
-            "title": "Default Format",
-            "type": "string"
-          },
-          "default_streams": {
-            "items": {
-              "type": "string"
-            },
-            "title": "Default Streams",
-            "type": "array"
-          },
-          "name": {
-            "title": "Name",
-            "type": "string"
-          },
-          "oauth_mode": {
-            "anyOf": [
-              {
-                "enum": [
-                  "airbyte_or_splendor",
-                  "splendor"
-                ],
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Oauth Mode"
-          },
-          "provider_key": {
-            "title": "Provider Key",
-            "type": "string"
-          },
-          "semantic_document_fields": {
-            "items": {
-              "type": "string"
-            },
-            "title": "Semantic Document Fields",
-            "type": "array"
-          },
-          "semantic_vocabulary_fields": {
-            "items": {
-              "type": "string"
-            },
-            "title": "Semantic Vocabulary Fields",
-            "type": "array"
-          },
-          "source_type": {
-            "title": "Source Type",
-            "type": "string"
-          }
-        },
-        "required": [
-          "provider_key",
-          "name",
-          "source_type",
-          "airbyte_source_definition_name",
-          "auth_mode",
-          "oauth_mode",
-          "default_streams",
-          "default_format",
-          "semantic_document_fields",
-          "semantic_vocabulary_fields"
-        ],
-        "title": "ConnectorProviderItem",
-        "type": "object"
-      },
-      "ConnectorProviderListResponse": {
-        "example": {
-          "providers": [
-            {
-              "airbyte_source_definition_name": "Stripe",
-              "auth_mode": "oauth",
-              "default_format": "jsonl",
-              "default_streams": [
-                "charges",
-                "invoices"
-              ],
-              "name": "Stripe",
-              "oauth_mode": "airbyte_or_splendor",
-              "provider_key": "stripe",
-              "semantic_document_fields": [],
-              "semantic_vocabulary_fields": [],
-              "source_type": "airbyte"
-            }
-          ]
-        },
-        "properties": {
-          "providers": {
-            "items": {
-              "$ref": "#/components/schemas/ConnectorProviderItem"
-            },
-            "title": "Providers",
-            "type": "array"
-          }
-        },
-        "required": [
-          "providers"
-        ],
-        "title": "ConnectorProviderListResponse",
         "type": "object"
       },
       "ConnectorRunItem": {
@@ -4210,12 +4219,6 @@
             "title": "Enabled",
             "type": "boolean"
           },
-          "format": {
-            "maxLength": 64,
-            "minLength": 1,
-            "title": "Format",
-            "type": "string"
-          },
           "name": {
             "maxLength": 255,
             "minLength": 1,
@@ -4267,8 +4270,7 @@
           "source_key",
           "name",
           "dataset_id",
-          "source_type",
-          "format"
+          "source_type"
         ],
         "title": "HostedSourceRequest",
         "type": "object"
@@ -4666,7 +4668,6 @@
           "bucket": "acme-uploads",
           "dataset_id": "app-logs",
           "etag": "\"abc123\"",
-          "format": "jsonl",
           "key": "uploads/ups_01H8Z3/data.jsonl",
           "source": "app-logs",
           "source_id": 12,
@@ -4691,10 +4692,6 @@
               }
             ],
             "title": "Etag"
-          },
-          "format": {
-            "title": "Format",
-            "type": "string"
           },
           "key": {
             "title": "Key",
@@ -4727,8 +4724,7 @@
           "tenant_id",
           "source_id",
           "dataset_id",
-          "source",
-          "format"
+          "source"
         ],
         "title": "HostedUploadResponse",
         "type": "object"
@@ -4744,7 +4740,6 @@
           "failed_document_count": 1,
           "failed_document_offset": 10,
           "failure_id": 1,
-          "format": "jsonl",
           "last_retry_at": null,
           "repair_kind": null,
           "repair_started_at": null,
@@ -4830,17 +4825,6 @@
           "failure_id": {
             "title": "Failure Id",
             "type": "integer"
-          },
-          "format": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Format"
           },
           "last_retry_at": {
             "anyOf": [
@@ -4941,7 +4925,6 @@
           "source_id",
           "dataset_id",
           "source",
-          "format",
           "s3_bucket",
           "s3_key",
           "s3_etag",
@@ -4975,7 +4958,6 @@
               "failed_document_count": 1,
               "failed_document_offset": 10,
               "failure_id": 1,
-              "format": "jsonl",
               "last_retry_at": null,
               "repair_kind": null,
               "repair_started_at": null,
@@ -5018,7 +5000,6 @@
             "failed_document_count": 1,
             "failed_document_offset": 10,
             "failure_id": 1,
-            "format": "jsonl",
             "last_retry_at": null,
             "repair_kind": null,
             "repair_started_at": null,
@@ -6465,6 +6446,9 @@
           "filters": {
             "$ref": "#/components/schemas/SemanticFiltersConfig"
           },
+          "image_embeddings": {
+            "$ref": "#/components/schemas/SemanticImageEmbeddingConfig"
+          },
           "vocabulary": {
             "$ref": "#/components/schemas/SemanticVocabularyConfig"
           }
@@ -6511,6 +6495,11 @@
       "SemanticFilterFieldConfig": {
         "additionalProperties": false,
         "properties": {
+          "array": {
+            "default": false,
+            "title": "Array",
+            "type": "boolean"
+          },
           "field": {
             "maxLength": 256,
             "minLength": 1,
@@ -6550,6 +6539,42 @@
           }
         },
         "title": "SemanticFiltersConfig",
+        "type": "object"
+      },
+      "SemanticImageEmbeddingConfig": {
+        "additionalProperties": false,
+        "properties": {
+          "fields": {
+            "items": {
+              "$ref": "#/components/schemas/SemanticImageFieldConfig"
+            },
+            "maxItems": 32,
+            "title": "Fields",
+            "type": "array"
+          },
+          "index_standalone": {
+            "default": false,
+            "title": "Index Standalone",
+            "type": "boolean"
+          }
+        },
+        "title": "SemanticImageEmbeddingConfig",
+        "type": "object"
+      },
+      "SemanticImageFieldConfig": {
+        "additionalProperties": false,
+        "properties": {
+          "field": {
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Field",
+            "type": "string"
+          }
+        },
+        "required": [
+          "field"
+        ],
+        "title": "SemanticImageFieldConfig",
         "type": "object"
       },
       "SemanticVocabularyConfig": {
@@ -6624,12 +6649,6 @@
               }
             ],
             "title": "External Id"
-          },
-          "format": {
-            "maxLength": 64,
-            "minLength": 1,
-            "title": "Format",
-            "type": "string"
           },
           "iam_role_arn": {
             "maxLength": 2048,
@@ -6709,7 +6728,6 @@
           "dataset_id",
           "source_type",
           "bucket",
-          "format",
           "iam_role_arn"
         ],
         "title": "SourceCreateRequest",
@@ -6752,7 +6770,6 @@
           "dataset_id": "app-logs",
           "enabled": true,
           "external_id_configured": false,
-          "format": "jsonl",
           "iam_role_arn": "arn:aws:iam::123456789012:role/acme-splendor",
           "ingest_token_configured": true,
           "ingest_token_created_at": "2026-01-15T09:30:00Z",
@@ -6772,6 +6789,10 @@
             },
             "filters": {
               "fields": []
+            },
+            "image_embeddings": {
+              "fields": [],
+              "index_standalone": false
             },
             "vocabulary": {
               "fields": []
@@ -6816,10 +6837,6 @@
           "external_id_configured": {
             "title": "External Id Configured",
             "type": "boolean"
-          },
-          "format": {
-            "title": "Format",
-            "type": "string"
           },
           "iam_role_arn": {
             "title": "Iam Role Arn",
@@ -6943,7 +6960,6 @@
           "source_type",
           "bucket",
           "prefix",
-          "format",
           "iam_role_arn",
           "external_id_configured",
           "intake_role_arn",
@@ -6973,7 +6989,6 @@
               "dataset_id": "app-logs",
               "enabled": true,
               "external_id_configured": false,
-              "format": "jsonl",
               "iam_role_arn": "arn:aws:iam::123456789012:role/acme-splendor",
               "ingest_token_configured": true,
               "ingest_token_created_at": "2026-01-15T09:30:00Z",
@@ -6993,6 +7008,10 @@
                 },
                 "filters": {
                   "fields": []
+                },
+                "image_embeddings": {
+                  "fields": [],
+                  "index_standalone": false
                 },
                 "vocabulary": {
                   "fields": []
@@ -7116,12 +7135,6 @@
             "title": "Enabled",
             "type": "boolean"
           },
-          "format": {
-            "maxLength": 64,
-            "minLength": 1,
-            "title": "Format",
-            "type": "string"
-          },
           "iam_role_arn": {
             "maxLength": 2048,
             "minLength": 1,
@@ -7200,7 +7213,6 @@
           "dataset_id",
           "source_type",
           "bucket",
-          "format",
           "iam_role_arn"
         ],
         "title": "SourceUpdateRequest",
@@ -11155,6 +11167,148 @@
         ]
       }
     },
+    "/v1/admin/airbyte-catalog": {
+      "get": {
+        "description": "Lists the Airbyte source connectors available to onboard, with their source definition ids. Pass ?search= to filter by name or docker repository. Requires an admin role.",
+        "operationId": "listAirbyteCatalog",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "search",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 128,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Search"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/SplendorTenantId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AirbyteCatalogResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "An upstream provider request failed."
+          }
+        },
+        "summary": "List the Airbyte connector catalog",
+        "tags": [
+          "Connectors & Airbyte"
+        ]
+      }
+    },
+    "/v1/admin/airbyte-catalog/{source_definition_id}/discover": {
+      "post": {
+        "description": "Resolves how to authenticate and configure an Airbyte connector: its credential spec, whether it supports Airbyte-native OAuth, and a consent URL when it does. Requires an admin role.",
+        "operationId": "discoverAirbyteConnector",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "source_definition_id",
+            "required": true,
+            "schema": {
+              "title": "Source Definition Id",
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/SplendorTenantId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AirbyteConnectorDiscoveryResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "The requested resource was not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "An upstream provider request failed."
+          }
+        },
+        "summary": "Discover an Airbyte connector's capabilities",
+        "tags": [
+          "Connectors & Airbyte"
+        ]
+      }
+    },
     "/v1/admin/airbyte-runs/{run_id}/refresh": {
       "post": {
         "description": "Polls Airbyte and refreshes the stored status of a sync run. Requires an admin role.",
@@ -11377,6 +11531,88 @@
           }
         },
         "summary": "Create an Airbyte connection",
+        "tags": [
+          "Connectors & Airbyte"
+        ]
+      }
+    },
+    "/v1/admin/airbyte-sources/{source_id}/discover-schema": {
+      "post": {
+        "description": "Runs schema discovery against a provisioned Airbyte source and returns the streams and their dotted field paths, so you can classify which fields are semantic. Persists a snapshot used to validate semantic config. Requires an admin role.",
+        "operationId": "discoverAirbyteSourceSchema",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "source_id",
+            "required": true,
+            "schema": {
+              "title": "Source Id",
+              "type": "integer"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/SplendorTenantId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AirbyteSchemaDiscoveryResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "The requested resource was not found."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "The request conflicts with the current state of the resource."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "502": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "An upstream provider request failed."
+          }
+        },
+        "summary": "Discover an Airbyte source schema",
         "tags": [
           "Connectors & Airbyte"
         ]
@@ -11705,111 +11941,6 @@
           }
         },
         "summary": "Start an Airbyte sync",
-        "tags": [
-          "Connectors & Airbyte"
-        ]
-      }
-    },
-    "/v1/admin/connector-providers": {
-      "get": {
-        "description": "Lists the available connector provider definitions you can create connectors and Airbyte sources from.",
-        "operationId": "listConnectorProviders",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/SplendorTenantId"
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ConnectorProviderListResponse"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          }
-        },
-        "summary": "List connector providers",
-        "tags": [
-          "Connectors & Airbyte"
-        ]
-      }
-    },
-    "/v1/admin/connector-providers/{provider_key}/airbyte-discovery": {
-      "post": {
-        "description": "Runs Airbyte schema discovery for a provider and returns the streams and fields it exposes, so you can configure a connection. Requires an admin role.",
-        "operationId": "discoverAirbyteSchema",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "provider_key",
-            "required": true,
-            "schema": {
-              "title": "Provider Key",
-              "type": "string"
-            }
-          },
-          {
-            "$ref": "#/components/parameters/SplendorTenantId"
-          }
-        ],
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ConnectorProviderDiscoveryResponse"
-                }
-              }
-            },
-            "description": "Successful Response"
-          },
-          "401": {
-            "$ref": "#/components/responses/Unauthorized"
-          },
-          "403": {
-            "$ref": "#/components/responses/Forbidden"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description": "The requested resource was not found."
-          },
-          "422": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            },
-            "description": "Validation Error"
-          },
-          "502": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            },
-            "description": "An upstream provider request failed."
-          }
-        },
-        "summary": "Discover an Airbyte schema",
         "tags": [
           "Connectors & Airbyte"
         ]

@@ -1,70 +1,141 @@
 ---
 title: "Connect a source"
-description: "Pull data from a third-party system with an Airbyte-backed connector."
+description: "Pull data from any Airbyte connector and make it searchable."
 ---
 
-Connectors pull data from third-party systems on a schedule. Splendor uses Airbyte under the hood, so connecting a source is a short sequence: discover, create, authenticate, connect, sync, and hand off to ingestion. All of these require an admin role.
+Connectors pull data from third-party systems on a schedule. Splendor uses Airbyte under the hood, so you can connect any Airbyte source connector — not a fixed list. The flow is: find the connector, discover what it needs, create the source, authenticate, classify its fields, then connect and sync. All of these require an admin role.
+
+Prefer to drive this from your terminal? See [Onboard a connector with an agent](/guides/onboard-a-connector-with-an-agent) for a paste-ready prompt that runs these same steps.
 
 ## Steps
 
 <Steps>
-  <Step title="Find a provider and discover its schema">
-    List the available providers, then run discovery to see the streams and fields a provider exposes.
+  <Step title="Find the connector in the catalog">
+    List the available Airbyte connectors and note the `source_definition_id` of the one you want.
 
     ```bash
-    curl https://api.withsplendor.com/v1/admin/connector-providers \
+    curl "https://api.withsplendor.com/v1/admin/airbyte-catalog?search=slack" \
       -H "Authorization: Bearer $SPLENDOR_TOKEN" \
       -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID"
     ```
   </Step>
 
-  <Step title="Create the Airbyte source">
-    Create the source with the provider, destination bucket, and the streams to sync.
+  <Step title="Discover what the connector needs">
+    Discovery returns the connector's credential spec, whether it uses Airbyte-native OAuth, and a consent URL when it does.
 
     ```bash
-    curl https://api.withsplendor.com/v1/admin/airbyte-sources \
+    curl -X POST \
+      https://api.withsplendor.com/v1/admin/airbyte-catalog/$SOURCE_DEFINITION_ID/discover \
+      -H "Authorization: Bearer $SPLENDOR_TOKEN" \
+      -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID"
+    ```
+
+    The response includes `oauth_mode` (`airbyte` or `none`), `connection_specification`, and `consent_url` for OAuth connectors.
+  </Step>
+
+  <Step title="Create the source">
+    Create the source with the connector's `source_definition_id`, a `source_type` of your choosing, the destination bucket, and the streams to sync.
+
+    ```bash
+    curl -X POST https://api.withsplendor.com/v1/admin/airbyte-sources \
       -H "Authorization: Bearer $SPLENDOR_TOKEN" \
       -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID" \
       -H "Content-Type: application/json" \
-      -d '{ "provider_key": "stripe", "connector_key": "stripe", "connector_name": "Stripe", "source_key": "stripe", "source_name": "Stripe", "dataset_id": "stripe", "bucket": "acme-connectors", "iam_role_arn": "arn:aws:iam::123456789012:role/acme-splendor" }'
+      -d '{
+        "airbyte_source_definition_id": "'$SOURCE_DEFINITION_ID'",
+        "connector_key": "slack",
+        "connector_name": "Slack",
+        "source_key": "slack",
+        "source_name": "Slack",
+        "dataset_id": "collaboration",
+        "source_type": "slack_messages",
+        "bucket": "acme-connectors",
+        "prefix": "raw/slack/",
+        "iam_role_arn": "arn:aws:iam::123456789012:role/acme-splendor",
+        "streams": ["channel_messages"]
+      }'
     ```
   </Step>
 
   <Step title="Provision and authenticate">
-    Provision the source, then complete authentication. For OAuth providers, send the user through the returned consent URL and finish with the OAuth completion endpoint.
+    For OAuth connectors (`oauth_mode: "airbyte"`), send the user through the `consent_url`, then finish with the OAuth completion endpoint:
 
     ```bash
-    curl https://api.withsplendor.com/v1/admin/airbyte-sources/{source_id}/provision \
+    curl -X POST \
+      https://api.withsplendor.com/v1/admin/airbyte-sources/$SOURCE_ID/oauth/complete \
       -H "Authorization: Bearer $SPLENDOR_TOKEN" \
       -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID" \
-      -H "Content-Type: application/json" -d '{"source_configuration": {}}'
+      -H "Content-Type: application/json" \
+      -d '{"query_params": {"code": "..."}, "oauth_input_configuration": {}}'
+    ```
+
+    For credential connectors (`oauth_mode: "none"`), provision with the credentials from the spec:
+
+    ```bash
+    curl -X POST \
+      https://api.withsplendor.com/v1/admin/airbyte-sources/$SOURCE_ID/provision \
+      -H "Authorization: Bearer $SPLENDOR_TOKEN" \
+      -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID" \
+      -H "Content-Type: application/json" \
+      -d '{"source_configuration": {"api_token": "..."}}'
     ```
   </Step>
 
-  <Step title="Create the connection and sync">
-    Create the connection (the mapping from source to destination), then start a sync. Poll the run until it completes.
+  <Step title="Discover the schema and classify fields">
+    Discover the connector's data schema, then mark which fields are semantic. Field paths must exist in the discovered schema.
 
     ```bash
-    curl https://api.withsplendor.com/v1/admin/airbyte-sources/{source_id}/sync \
+    curl -X POST \
+      https://api.withsplendor.com/v1/admin/airbyte-sources/$SOURCE_ID/discover-schema \
+      -H "Authorization: Bearer $SPLENDOR_TOKEN" \
+      -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID"
+    ```
+
+    Apply the classification by updating the source's `semantic_config`:
+
+    ```bash
+    curl -X PUT https://api.withsplendor.com/v1/admin/sources/$SOURCE_ID \
+      -H "Authorization: Bearer $SPLENDOR_TOKEN" \
+      -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "source_key": "slack", "name": "Slack", "dataset_id": "collaboration",
+        "source_type": "slack_messages", "bucket": "acme-connectors",
+        "prefix": "raw/slack/", "iam_role_arn": "arn:aws:iam::123456789012:role/acme-splendor",
+        "semantic_config": {
+          "document_embeddings": {"fields": [{"field": "text"}]},
+          "vocabulary": {"fields": [{"field": "user.email"}]}
+        }
+      }'
+    ```
+  </Step>
+
+  <Step title="Connect and sync">
+    Create the connection (the mapping from source to destination), then start a sync and poll the run until it completes.
+
+    ```bash
+    curl -X POST \
+      https://api.withsplendor.com/v1/admin/airbyte-sources/$SOURCE_ID/sync \
       -H "Authorization: Bearer $SPLENDOR_TOKEN" \
       -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID" \
       -H "Content-Type: application/json" -d '{"trigger": "manual"}'
     ```
   </Step>
-
-  <Step title="Hand off to ingestion">
-    Once a sync has landed data, enqueue ingestion to make it searchable.
-
-    ```bash
-    curl https://api.withsplendor.com/v1/admin/airbyte-sources/{source_id}/enqueue-ingest \
-      -H "Authorization: Bearer $SPLENDOR_TOKEN" \
-      -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID" -X POST
-    ```
-  </Step>
 </Steps>
+
+## Ingestion
+
+When the destination bucket is wired for object-created events, each synced object becomes searchable automatically — scheduled syncs need no extra step. To backfill objects written before that wiring, enqueue ingestion once:
+
+```bash
+curl -X POST \
+  https://api.withsplendor.com/v1/admin/airbyte-sources/$SOURCE_ID/enqueue-ingest \
+  -H "Authorization: Bearer $SPLENDOR_TOKEN" \
+  -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID"
+```
 
 <Tip>
   For a simpler push-based flow, upload files with a [hosted source](/guides/ingest-a-dataset) or [stream logs](/guides/stream-logs) instead.
 </Tip>
 
-See the [Connectors & Airbyte](/api-reference/connectors-&-airbyte/list-connector-providers) reference for every field and response.
+See the [Connectors & Airbyte](/api-reference/connectors-&-airbyte/list-the-airbyte-connector-catalog) reference for every field and response.
