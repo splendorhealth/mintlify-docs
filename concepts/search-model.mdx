@@ -42,6 +42,33 @@ Splendor exposes three ways to search, and they share one response shape. Whethe
   </Tab>
 </Tabs>
 
+## Filtering on metadata
+
+`where` clauses filter every mode. To make a field filterable, declare it under the source's `semantic.filters` with a type so its values are indexed as a typed attribute:
+
+```json
+{
+  "semantic": {
+    "filters": {
+      "fields": [
+        { "field": "severity", "type": "keyword" },
+        { "field": "status_code", "type": "i64" },
+        { "field": "tags", "type": "keyword", "array": true }
+      ]
+    }
+  }
+}
+```
+
+Types are `keyword`, `i64`, `f64`, `bool`, `datetime`, and `ip`. A `where` clause names the field, an operator, and a value:
+
+| Field kind | Supported operators |
+| --- | --- |
+| Scalar | `eq`, `in`, `prefix` (keyword), `gt`/`gte`/`lt`/`lte` (numbers, datetimes) |
+| Array (`array: true`) | `eq` (the list contains the value), `in` (the list contains any of the values) |
+
+Declare a field as `array` when it holds a list of values (for example `tags`); it is stored as a distinct multi-valued attribute, so the same path can't be both scalar and array within a dataset. Filters declared after records were indexed apply to new records immediately; to apply one to existing records, run a [filter backfill](/reference/async-jobs#jobs-by-operation).
+
 ## The response envelope
 
 Every mode returns this shape. The fields make truncation explicit so you never have to guess whether more results exist.

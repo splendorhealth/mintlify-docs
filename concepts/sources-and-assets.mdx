@@ -89,7 +89,9 @@ The value of an image-reference field can be written three ways, all resolving t
 | `splendor://<source>/<key>` | the **named source** | the image lives in a different source you own |
 | `s3://<bucket>/<key>` | the source whose bucket + prefix **covers that key** | your records already carry absolute S3 URIs (typical for BYOC) |
 
-For images in your own cloud (BYOC), Splendor assumes the source's role to read them; for hosted images it uses managed credentials. Either way, the same image is fetched and embedded only once even if many records reference it.
+For images in your own cloud (BYOC), Splendor assumes the source's role to read them; for hosted images it uses managed credentials. Either way, the same image is fetched and embedded only once even if many records reference it. If a referenced image is later overwritten in place, Splendor notices the change and re-embeds it, so visual search stays in sync with the current bytes.
+
+You can upload image files (`.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`) through the same hosted upload flow as records; their format is detected from the object, so no `format` is needed.
 
 ## Passive assets vs. standalone images
 
