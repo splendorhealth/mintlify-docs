@@ -104,7 +104,8 @@ Prefer to drive this from your terminal? See [Onboard a connector with an agent]
         "prefix": "raw/slack/", "iam_role_arn": "arn:aws:iam::123456789012:role/acme-splendor",
         "semantic_config": {
           "document_embeddings": {"fields": [{"field": "text"}]},
-          "vocabulary": {"fields": [{"field": "user.email"}]}
+          "vocabulary": {"fields": [{"field": "user.email"}]},
+          "filters": {"fields": [{"field": "channel", "type": "keyword"}]}
         }
       }'
     ```
