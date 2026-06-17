@@ -27,6 +27,21 @@ curl https://api.withsplendor.com/v1/search \
   A handle created in one tenant cannot be read from another, even with a token that can access both. Re-create the search or view under the tenant you intend to use.
 </Warning>
 
-## Building a platform on Splendor?
+## Direct vs platform
 
-If you are putting Splendor underneath your own product and each of *your* customers has data that must stay isolated, give each customer its own tenant — never a shared tenant partitioned by dataset. See [Build a platform on Splendor](/guides/platform-patterns) for the model and [Provision tenants for your customers](/guides/provision-tenants) for the API.
+There are two ways an organization shows up in Splendor. Both rest on the same tenant boundary above — they differ in *who authenticates* and *who creates tenants*.
+
+**Direct** — your own people use Splendor. Your organization is one tenant; your users sign in (through the [console](https://app.withsplendor.com) or your SSO) and search it directly. A user can belong to several tenants and switch between them — `GET /v1/me` lists them. This is the default: if your team searches your own data, you are here, and there is nothing extra to set up.
+
+**Platform** — you put Splendor underneath your own product, and each of *your* customers has data that must stay isolated. Your backend holds a platform API key and provisions one tenant per customer; your end-users never authenticate to Splendor directly — your application is the only client.
+
+| | Direct | Platform |
+| --- | --- | --- |
+| Who authenticates | your users, each with their own token | your backend, with one platform API key |
+| A tenant is | your organization | one of *your* customers |
+| Who creates tenants | Splendor, at onboarding | you, via `POST /v1/platform/tenants` |
+| Your end-users | sign in to Splendor | never touch Splendor |
+
+Either way the rule is the same: **a customer is a tenant, never a dataset** — datasets are co-queryable within a tenant and are not an isolation boundary.
+
+If you are building on Splendor, see [Build a platform on Splendor](/guides/platform-patterns) for the model and [Provision tenants for your customers](/guides/provision-tenants) for the API.
