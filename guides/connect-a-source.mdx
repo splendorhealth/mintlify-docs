@@ -53,23 +53,21 @@ Create a source, mint an ingest token, then push data to it. Creating sources an
   <Step title="Push data">
     Send data to the source with the **ingest token** as a bearer credential. Two shapes:
 
-    - **Structured records / events** — `POST /v1/ingest/sources/{source_key}/logs` accepts a JSON `records` array (or newline-delimited JSON), gzip allowed, and returns `202 Accepted`.
+    - **Structured records / events** — `POST /v1/ingest/sources/{source_key}/logs` takes a **batch** and returns `202 Accepted`. Send either a top-level **JSON array** of event objects with `Content-Type: application/json`, or **newline-delimited JSON** (one object per line) with `Content-Type: application/x-ndjson`. Gzip is allowed.
     - **Files** — for larger objects, use the resumable multipart upload (`POST /v1/ingest/sources/{source_key}/uploads` → sign parts → complete). See [Ingest a dataset](/guides/ingest-a-dataset).
 
     ```bash
     curl https://api.withsplendor.com/v1/ingest/sources/github-events/logs \
       -H "Authorization: Bearer $SPLENDOR_INGEST_TOKEN" \
       -H "Content-Type: application/json" \
-      -d '{
-        "records": [
-          {"action": "opened", "number": 41, "title": "Fix retry backoff", "repo": "acme/api"},
-          {"action": "closed", "number": 39, "title": "Bump deps", "repo": "acme/api"}
-        ]
-      }'
+      -d '[
+        {"action": "opened", "number": 41, "title": "Fix retry backoff", "repo": "acme/api"},
+        {"action": "closed", "number": 39, "title": "Bump deps", "repo": "acme/api"}
+      ]'
     ```
 
     <Note>
-      The ingest endpoints (`/v1/ingest/sources/...`) authenticate with the **ingest token only** — no `X-Splendor-Tenant-Id` header. The token already names the source and tenant.
+      The ingest endpoints (`/v1/ingest/sources/...`) authenticate with the **ingest token only** — no `X-Splendor-Tenant-Id` header. The token already names the source and tenant. The response reports how many events were `received` and a `fragment_id` for the batch.
     </Note>
   </Step>
 
@@ -86,35 +84,48 @@ Create a source, mint an ingest token, then push data to it. Creating sources an
 
 ## Connect a webhook
 
-Most SaaS tools can POST events to a URL when something happens. Point that webhook at your source's `logs` endpoint and the events become searchable — no polling, no connector.
+Most SaaS tools can POST an event to a URL when something happens. The `logs` endpoint expects a **batch** (a JSON array or NDJSON) and an ingest-token `Authorization` header, while a webhook delivers **one event at a time** as a single JSON object — and usually can't attach that header. A tiny **relay** bridges the gap: it wraps each incoming event in a one-element array and forwards it with the token. The relay holds the token, so it never lives in the provider's config.
 
 <Steps>
   <Step title="Create a source and mint a token">
     Follow the two steps above to create a source (say `source_key = "stripe-events"`) and mint its ingest token.
   </Step>
 
-  <Step title="Point the provider's webhook at Splendor">
-    In the provider's dashboard, add a webhook whose **payload URL** is your source's `logs` endpoint and whose `Authorization` header carries the ingest token:
+  <Step title="Deploy a small relay">
+    Stand up a function (a Cloudflare Worker, Lambda behind a URL, or any HTTP endpoint) that receives the provider's webhook, wraps the body, and forwards it to the `logs` endpoint with the ingest token. About a dozen lines:
 
-    ```
-    URL:     https://api.withsplendor.com/v1/ingest/sources/stripe-events/logs
-    Header:  Authorization: Bearer <your-ingest-token>
+    ```js
+    // Cloudflare Worker — receives a provider webhook, forwards it to Splendor.
+    export default {
+      async fetch(request, env) {
+        const event = await request.json();              // provider's single event
+        await fetch(
+          "https://api.withsplendor.com/v1/ingest/sources/stripe-events/logs",
+          {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${env.SPLENDOR_INGEST_TOKEN}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify([event]),                // wrap as a 1-element batch
+          },
+        );
+        return new Response("ok");
+      },
+    };
     ```
 
-    For example, **Stripe** event deliveries or **GitHub** repository webhooks both POST a JSON event body, which lands as a record on the source. Each delivery returns `202`.
+    Optionally verify the provider's own signature (Stripe's `Stripe-Signature`, GitHub's `X-Hub-Signature-256`) in the relay before forwarding.
   </Step>
 
-  <Step title="Verify events arrive">
-    Trigger an event in the provider, then check `GET /v1/ingest/runs` for the dataset and run a search. Events flow in continuously from then on.
+  <Step title="Point the provider's webhook at the relay">
+    In the provider's dashboard, set the webhook **payload URL** to your relay's URL. Trigger a test event, then check `GET /v1/ingest/runs` for the dataset and run a search. Events flow in continuously from then on.
   </Step>
 </Steps>
 
-<Note>
-  **If the provider can't set an `Authorization` header.** Some webhook senders only let you set the URL, or sign requests their own way. Two options:
-
-  - **Use a provider that supports custom headers** — GitHub, Stripe, Linear, Sentry, and most modern tools do.
-  - **Add a tiny relay** — a small function (e.g. a Cloudflare Worker or Lambda) that receives the provider's webhook, attaches `Authorization: Bearer <ingest-token>`, and forwards the body to the `logs` endpoint. The relay holds the token, so it never lives in the provider's config.
-</Note>
+<Tip>
+  **No relay needed** if your provider (or your own emitter) can both send a JSON **array** body and set a custom `Authorization` header — then point it straight at `https://api.withsplendor.com/v1/ingest/sources/<source_key>/logs` with `Authorization: Bearer <ingest-token>`.
+</Tip>
 
 ## BYOC — read from your own S3 bucket
 
@@ -136,7 +147,7 @@ curl https://api.withsplendor.com/v1/admin/sources \
     "source_key": "warehouse-exports",
     "name": "Warehouse exports",
     "dataset_id": "warehouse",
-    "source_type": "byoc_s3",
+    "source_type": "generic_jsonl",
     "bucket": "acme-prod-exports",
     "prefix": "splendor/",
     "iam_role_arn": "arn:aws:iam::123456789012:role/acme-splendor-access",

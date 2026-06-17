@@ -14,28 +14,27 @@ When you have a stream of log records rather than a file, post them directly to 
 
 `POST /v1/ingest/sources/{source_key}/logs` accepts a batch of records and returns `202 Accepted`. The records are queued and become searchable once indexed.
 
-Authenticate with the source's **ingest token** as a bearer credential — the token already names the source and tenant, so no `X-Splendor-Tenant-Id` header is needed.
+Authenticate with the source's **ingest token** as a bearer credential — the token already names the source and tenant, so no `X-Splendor-Tenant-Id` header is needed. Send the batch as a top-level **JSON array** (`Content-Type: application/json`), or as **newline-delimited JSON**, one object per line (`Content-Type: application/x-ndjson`). Gzip is allowed.
 
 <CodeGroup>
 ```bash curl
 curl https://api.withsplendor.com/v1/ingest/sources/app-logs/logs \
   -H "Authorization: Bearer $SPLENDOR_INGEST_TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{
-    "records": [
-      {"level": "error", "message": "connection timeout after 30s", "service": "checkout"},
-      {"level": "info", "message": "request completed", "service": "checkout"}
-    ]
-  }'
+  -d '[
+    {"level": "error", "message": "connection timeout after 30s", "service": "checkout"},
+    {"level": "info", "message": "request completed", "service": "checkout"}
+  ]'
 ```
 
 ```python Python
 client.post(
     "/v1/ingest/sources/app-logs/logs",
-    json={"records": [
+    headers={"Authorization": f"Bearer {ingest_token}", "Content-Type": "application/json"},
+    json=[
         {"level": "error", "message": "connection timeout after 30s", "service": "checkout"},
         {"level": "info", "message": "request completed", "service": "checkout"},
-    ]},
+    ],
 )
 ```
 </CodeGroup>

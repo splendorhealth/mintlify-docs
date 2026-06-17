@@ -33,12 +33,16 @@ Steps (show me each request before you send it, and wait for my go-ahead on writ
 3. Mint an ingest token:
      POST $SPLENDOR_API_BASE/v1/admin/sources/<source_id>/ingest-token
    Save the plaintext token (shown once). Treat it like a password.
-4. Tell me exactly how to configure the provider's webhook:
-     - Payload URL: $SPLENDOR_API_BASE/v1/ingest/sources/<source_key>/logs
-     - Header:      Authorization: Bearer <the ingest token>
-   The ingest endpoints take the ingest token only — no tenant header.
-   If the provider can't set an Authorization header, propose a small relay
-   (a function that adds the header and forwards the body).
+4. The logs endpoint takes a batch — a JSON array (Content-Type
+   application/json) or newline-delimited JSON — with the ingest token as a
+   bearer credential (no tenant header). A webhook sends one object at a time
+   and usually can't set that header, so propose a small relay: a function that
+   receives the provider's event, wraps it as a one-element array, and POSTs to
+     $SPLENDOR_API_BASE/v1/ingest/sources/<source_key>/logs
+   with `Authorization: Bearer <the ingest token>`. Give me the relay code and
+   tell me to point the provider's webhook at the relay's URL. (If the provider
+   can already send an array body and a custom Authorization header, skip the
+   relay and point it straight at the logs endpoint.)
 5. After I trigger a test event, verify it landed:
      GET $SPLENDOR_API_BASE/v1/ingest/runs?dataset_id=<dataset>
    then run a search to confirm the data is queryable.
@@ -55,8 +59,8 @@ The prompt drives the same flow as [Connect a source](/guides/connect-a-source):
   <Step title="Mints an ingest token">
     Calls `POST /v1/admin/sources/{source_id}/ingest-token` and keeps the plaintext token (returned once) to use as the webhook's bearer credential.
   </Step>
-  <Step title="Configures the provider's webhook">
-    Gives you the exact payload URL (`/v1/ingest/sources/{source_key}/logs`) and `Authorization` header to paste into the provider — or proposes a relay if the provider can't send custom headers.
+  <Step title="Wires up the webhook">
+    Gives you a small relay that wraps each provider event as a one-element batch and forwards it to `/v1/ingest/sources/{source_key}/logs` with the ingest token, then has you point the provider's webhook at the relay. (If the provider can send a JSON array with a custom `Authorization` header, it skips the relay and posts straight to the logs endpoint.)
   </Step>
   <Step title="Verifies and searches">
     After a test event, checks `GET /v1/ingest/runs` for the dataset and runs a search to confirm the events are queryable.
