@@ -7,18 +7,19 @@ When you have a stream of log records rather than a file, post them directly to 
 
 ## Prerequisites
 
-- A source to ingest into (see [Ingest a dataset](/guides/ingest-a-dataset) for creating one).
-- An ingest token, or your bearer token with access to the tenant.
+- A source to ingest into (see [Connect a source](/guides/connect-a-source) for creating one).
+- An [ingest token](/guides/connect-a-source) for that source.
 
 ## Send a batch
 
 `POST /v1/ingest/sources/{source_key}/logs` accepts a batch of records and returns `202 Accepted`. The records are queued and become searchable once indexed.
 
+Authenticate with the source's **ingest token** as a bearer credential — the token already names the source and tenant, so no `X-Splendor-Tenant-Id` header is needed.
+
 <CodeGroup>
 ```bash curl
 curl https://api.withsplendor.com/v1/ingest/sources/app-logs/logs \
-  -H "Authorization: Bearer $SPLENDOR_TOKEN" \
-  -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID" \
+  -H "Authorization: Bearer $SPLENDOR_INGEST_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "records": [
