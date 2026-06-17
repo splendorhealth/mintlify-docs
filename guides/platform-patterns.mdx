@@ -5,6 +5,10 @@ description: "Map your end-customers to isolated tenants, and your content types
 
 If you are building a product on top of Splendor — a screenshot search app, a document search feature, an analytics layer for your own customers — you are a **platform**. Your customers each have their own data that must never be visible to another customer. This guide shows how to model that.
 
+<Info>
+  If instead your own team searches your own data, you are a **direct** customer — your users sign in to Splendor and you don't need the platform plane at all. See [Direct vs platform](/concepts/tenancy#direct-vs-platform) to tell which one you are.
+</Info>
+
 ## The one rule: a customer is a tenant, not a dataset
 
 A **tenant** is Splendor's hard isolation boundary. Every query, handle, and stored record is scoped to one tenant, and the API never lets data cross that line — it is enforced at the auth, query, handle, and storage layers, independent of your application code.
