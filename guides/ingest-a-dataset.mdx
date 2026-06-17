@@ -7,8 +7,10 @@ This guide loads data into Splendor through a **hosted source** — storage Sple
 
 ## Prerequisites
 
-- An admin role in the tenant (creating sources requires admin).
+- An admin role in the tenant (creating sources and tokens requires admin).
 - A file of records to upload (for example, newline-delimited JSON).
+
+Two credentials appear below: your **admin bearer token** (with the `X-Splendor-Tenant-Id` header) for the `/v1/admin/...` calls, and the source's **ingest token** for the `/v1/ingest/sources/...` calls. The ingest token carries the source and tenant itself, so those calls need no tenant header.
 
 ## Steps
 
@@ -30,13 +32,22 @@ This guide loads data into Splendor through a **hosted source** — storage Sple
     ```
   </Step>
 
+  <Step title="Mint an ingest token">
+    Mint a token for the source (using its numeric `source_id` from the previous response). The plaintext token is returned once; use it as the bearer credential for every upload call below.
+
+    ```bash
+    curl -X POST https://api.withsplendor.com/v1/admin/sources/$SOURCE_ID/ingest-token \
+      -H "Authorization: Bearer $SPLENDOR_TOKEN" \
+      -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID"
+    ```
+  </Step>
+
   <Step title="Initiate an upload">
     Start an upload session for your file. The response tells you whether to upload in a single request or in parts, and returns an `upload_session_id`.
 
     ```bash
     curl https://api.withsplendor.com/v1/ingest/sources/app-logs/uploads \
-      -H "Authorization: Bearer $SPLENDOR_TOKEN" \
-      -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID" \
+      -H "Authorization: Bearer $SPLENDOR_INGEST_TOKEN" \
       -H "Content-Type: application/json" \
       -d '{"object_size_bytes": 5242880, "content_type": "application/x-ndjson", "filename": "app-0001.jsonl"}'
     ```
@@ -47,8 +58,7 @@ This guide loads data into Splendor through a **hosted source** — storage Sple
 
     ```bash
     curl https://api.withsplendor.com/v1/ingest/sources/app-logs/uploads/parts \
-      -H "Authorization: Bearer $SPLENDOR_TOKEN" \
-      -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID" \
+      -H "Authorization: Bearer $SPLENDOR_INGEST_TOKEN" \
       -H "Content-Type: application/json" \
       -d '{"upload_session_id": "ups_...", "part_numbers": [1]}'
     ```
@@ -59,8 +69,7 @@ This guide loads data into Splendor through a **hosted source** — storage Sple
 
     ```bash
     curl https://api.withsplendor.com/v1/ingest/sources/app-logs/uploads/complete \
-      -H "Authorization: Bearer $SPLENDOR_TOKEN" \
-      -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID" \
+      -H "Authorization: Bearer $SPLENDOR_INGEST_TOKEN" \
       -H "Content-Type: application/json" \
       -d '{"upload_session_id": "ups_...", "parts": [{"part_number": 1, "etag": "\"...\""}]}'
     ```
@@ -71,8 +80,7 @@ This guide loads data into Splendor through a **hosted source** — storage Sple
 
     ```bash
     curl https://api.withsplendor.com/v1/ingest/sources/app-logs/uploads/ups_.../readiness \
-      -H "Authorization: Bearer $SPLENDOR_TOKEN" \
-      -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID"
+      -H "Authorization: Bearer $SPLENDOR_INGEST_TOKEN"
     ```
   </Step>
 </Steps>
@@ -88,6 +96,6 @@ This guide loads data into Splendor through a **hosted source** — storage Sple
     Send log records continuously instead of uploading files.
   </Card>
   <Card title="Connect a source" icon="plug" href="/guides/connect-a-source">
-    Pull from a third-party system with a connector.
+    Push data over HTTP — including from a webhook — or read from your own S3 bucket.
   </Card>
 </Columns>

@@ -1,51 +1,78 @@
 ---
-title: "Onboard a connector with an agent"
-description: "Paste a prompt into a coding agent to connect any Airbyte source end to end."
+title: "Onboard a source with an agent"
+description: "Paste a prompt into a coding agent to wire a webhook source up to Splendor."
 ---
 
-Connecting a source is a sequence of admin API calls: find the connector, discover its schema, decide which fields are semantic, then register, authenticate, and sync. An AI coding agent (Claude Code, Codex, and similar) can run that whole sequence for you — you tell it which source you want and approve the steps. This is the low-code path for the long tail of Airbyte connectors that don't have a dedicated screen.
+Connecting a webhook source is a short sequence of API calls: create a source, mint an ingest token, point the provider's webhook at Splendor, then confirm events arrive. An AI coding agent (Claude Code, Codex, and similar) can run that sequence for you — you tell it which provider you want and approve the steps.
 
-## Copy the prompt
+## The prompt
 
-In the console, open **Sources → New source → Airbyte** and click **Copy agent prompt**. The prompt is pre-filled with your tenant id. Paste it into your coding agent and tell it which source to connect (for example, "Snowflake" or "GitHub").
+Paste the prompt below into your coding agent and tell it which provider to connect (for example, "GitHub", "Stripe", "Linear", or "Sentry"). Fill in the three values first.
 
-The agent will ask you for three values before it starts:
+```text
+You are wiring up a webhook source for Splendor. Use the Splendor admin API to
+create a source and an ingest token, help me configure the provider's webhook
+to send events to it, then confirm the events arrive.
 
-- `SPLENDOR_API_BASE` — your API base URL.
-- `SPLENDOR_TENANT_ID` — your tenant id (pre-filled in the copied prompt).
-- `SPLENDOR_TOKEN` — a tenant-admin bearer token, or a platform API key scoped to this tenant.
+Values:
+- SPLENDOR_API_BASE   = https://api.withsplendor.com
+- SPLENDOR_TENANT_ID  = <my tenant id>
+- SPLENDOR_TOKEN      = <a tenant-admin bearer token, or a platform API key scoped to this tenant>
+
+Admin calls use these headers:
+  Authorization: Bearer $SPLENDOR_TOKEN
+  X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID
+
+Steps (show me each request before you send it, and wait for my go-ahead on writes):
+1. Ask me which provider to connect and a short dataset name.
+2. Create a hosted source:
+     POST $SPLENDOR_API_BASE/v1/admin/hosted-sources
+     { "source_key": "<provider>-events", "name": "<Provider> events",
+       "dataset_id": "<dataset>", "source_type": "hosted" }
+   Save the returned source_id and source_key.
+3. Mint an ingest token:
+     POST $SPLENDOR_API_BASE/v1/admin/sources/<source_id>/ingest-token
+   Save the plaintext token (shown once). Treat it like a password.
+4. The logs endpoint takes a batch — a JSON array (Content-Type
+   application/json) or newline-delimited JSON — with the ingest token as a
+   bearer credential (no tenant header). A webhook sends one object at a time
+   and usually can't set that header, so propose a small relay: a function that
+   receives the provider's event, wraps it as a one-element array, and POSTs to
+     $SPLENDOR_API_BASE/v1/ingest/sources/<source_key>/logs
+   with `Authorization: Bearer <the ingest token>`. Give me the relay code and
+   tell me to point the provider's webhook at the relay's URL. (If the provider
+   can already send an array body and a custom Authorization header, skip the
+   relay and point it straight at the logs endpoint.)
+5. After I trigger a test event, verify it landed:
+     GET $SPLENDOR_API_BASE/v1/ingest/runs?dataset_id=<dataset>
+   then run a search to confirm the data is queryable.
+```
 
 ## What the agent does
 
-The prompt drives the same endpoints as [Connect a source](/guides/connect-a-source), in order:
+The prompt drives the same flow as [Connect a source](/guides/connect-a-source):
 
 <Steps>
-  <Step title="Checks support">
-    Searches `GET /v1/admin/airbyte-catalog` for the connector and stops if it isn't available.
+  <Step title="Creates a source">
+    Calls `POST /v1/admin/hosted-sources` for a dataset you name, and saves the `source_id` and `source_key`.
   </Step>
-  <Step title="Inspects the connector">
-    Calls `POST /v1/admin/airbyte-catalog/{source_definition_id}/discover` to read the credential spec and OAuth mode, and summarizes what's required.
+  <Step title="Mints an ingest token">
+    Calls `POST /v1/admin/sources/{source_id}/ingest-token` and keeps the plaintext token (returned once) to use as the webhook's bearer credential.
   </Step>
-  <Step title="Registers the source">
-    Calls `POST /v1/admin/airbyte-sources` with the `source_definition_id`, `source_type`, destination bucket, and the streams you choose.
+  <Step title="Wires up the webhook">
+    Gives you a small relay that wraps each provider event as a one-element batch and forwards it to `/v1/ingest/sources/{source_key}/logs` with the ingest token, then has you point the provider's webhook at the relay. (If the provider can send a JSON array with a custom `Authorization` header, it skips the relay and posts straight to the logs endpoint.)
   </Step>
-  <Step title="Authenticates">
-    For OAuth connectors it hands you a consent URL and finishes via `oauth/complete`; for credential connectors it provisions with the credentials you supply.
-  </Step>
-  <Step title="Classifies fields">
-    Calls `POST /v1/admin/airbyte-sources/{id}/discover-schema`, proposes which fields are document text, vocabulary, or filters, and applies the classification with `PUT /v1/admin/sources/{id}` after you approve.
-  </Step>
-  <Step title="Connects and syncs">
-    Creates the connection, starts a sync, and polls the run to completion.
+  <Step title="Verifies and searches">
+    After a test event, checks `GET /v1/ingest/runs` for the dataset and runs a search to confirm the events are queryable.
   </Step>
 </Steps>
 
-The prompt instructs the agent to show you exactly what it will send before each write and to summarize the result once the source is connected.
+The prompt instructs the agent to show you each request before it sends it and to wait for your go-ahead on any write.
 
-## OAuth needs a person
+## Secrets stay out of chat
 
-Credential-based connectors (most databases, API-key sources) are fully hands-off once you provide the credentials. OAuth connectors (such as Slack or Gmail) need a human to approve consent in a browser: the agent gives you the consent URL, you approve, and the agent resumes with the callback parameters. The agent can't complete OAuth on its own.
+The ingest token is shown once when minted — treat it like a password. Have the agent store it where the provider (or your relay) reads it, not in the chat transcript. The agent never needs your provider credentials: you configure the webhook in the provider's own dashboard.
 
 <Tip>
-  Want to run the steps yourself instead of through an agent? [Connect a source](/guides/connect-a-source) lists the same calls as copy-paste `curl` commands.
+  Prefer to run the steps yourself? [Connect a source](/guides/connect-a-source) lists the same calls as copy-paste `curl` commands.
 </Tip>
