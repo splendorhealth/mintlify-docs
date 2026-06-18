@@ -7,7 +7,34 @@ Semantic search retrieves records by meaning rather than exact keywords. It uses
 
 ## Prerequisites
 
+- **The source must declare what to embed.** Semantic search only retrieves over fields you have configured for embedding. On the source, set `semantic_config.document_embeddings.fields` to the field(s) Splendor should encode into vectors (see [Configure embeddings](#configure-embeddings) below). Without it, nothing is embedded — `semantic: true` still succeeds but silently returns keyword (lexical) results, and the response carries a `warnings` entry with code `semantic_no_embeddings`.
 - A dataset whose semantic search is ready. Check [readiness](/concepts/datasets#readiness) first; semantic indexing completes after text indexing.
+
+## Configure embeddings
+
+Declare the embedding fields when you create (or update) the source. This is what makes `semantic: true` return true vector results instead of falling back to keyword search.
+
+```bash
+curl https://api.withsplendor.com/v1/admin/hosted-sources \
+  -H "Authorization: Bearer $SPLENDOR_TOKEN" \
+  -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "source_key": "support-tickets",
+    "name": "Support tickets",
+    "dataset_id": "support-tickets",
+    "source_type": "hosted",
+    "semantic_config": {
+      "document_embeddings": { "fields": [{ "field": "body" }] }
+    }
+  }'
+```
+
+You can also embed image fields (`image_embeddings`) and declare semantic `filters`/`vocabulary` — see the [Create a hosted source](/api-reference/sources-&-ingest/create-a-hosted-source) reference for the full `semantic_config` schema.
+
+<Warning>
+  If you request `semantic: true` against a dataset that has no `document_embeddings` configured, the search does **not** error — it returns lexical (keyword) results and a non-fatal `warnings` advisory (`code: "semantic_no_embeddings"`) naming the affected datasets. Check `warnings` if semantic results look like plain keyword matches.
+</Warning>
 
 ## Search by meaning
 
