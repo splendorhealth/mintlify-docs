@@ -32,6 +32,10 @@ Create a source, mint an ingest token, then push data to it. Creating sources an
     ```
 
     The response includes the numeric `source_id` you use to mint a token. The `source_key` (`github-events` here) is what you put in ingest URLs.
+
+    <Note>
+      To enable **semantic (vector) search** on this data, also pass `semantic_config.document_embeddings.fields` here, naming the fields to embed. Without it, only keyword and SQL search work — semantic queries fall back to keyword results. See [Run a semantic search](/guides/semantic-search#configure-embeddings).
+    </Note>
   </Step>
 
   <Step title="Mint an ingest token">

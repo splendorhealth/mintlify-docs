@@ -23,6 +23,20 @@ So the mapping for a platform is:
   Do **not** put each end-customer in a dataset inside one shared tenant. Datasets are not an isolation boundary — a single query can read across them, so one missed filter in your code would leak one customer's data to another. Give each customer its own tenant and Splendor enforces the wall for you.
 </Warning>
 
+## Get your platform API key
+
+Becoming a platform starts with minting a **platform API key** — the machine-to-machine credential the rest of this guide uses. A **tenant admin** mints it self-serve from their own account; no Splendor staff step is required.
+
+```bash
+curl -X POST https://api.withsplendor.com/v1/admin/platform-keys \
+  -H "Authorization: Bearer $SPLENDOR_TOKEN" \
+  -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID" \
+  -H "Content-Type: application/json" \
+  -d '{ "name": "production" }'
+```
+
+The plaintext `token` (prefixed `splpk.`) is returned **once** — store it securely; you cannot retrieve it again. `GET /v1/admin/platform-keys` lists your keys and `DELETE /v1/admin/platform-keys/{key_id}` revokes one. Mint a second key before revoking the first to rotate without downtime. You can also do all of this from the console under **Settings → Platform API keys**.
+
 ## How access works
 
 Your backend holds a **platform API key** (a machine-to-machine credential). With it you can:
