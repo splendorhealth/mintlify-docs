@@ -35,6 +35,22 @@ A platform key only ever reaches the tenants you created. It cannot reach anothe
 
 See [Provision tenants for your customers](/guides/provision-tenants) for the end-to-end flow.
 
+## Setting up data inside a tenant
+
+Provisioning a tenant is only the first step. Everything you then do *inside* it — create a source, ingest records, check readiness, search — uses that **same platform key** plus the tenant's id in the `X-Splendor-Tenant-Id` header. There is no separate per-tenant key to mint. The setup calls a platform makes for each tenant:
+
+| Step | Call | Guide |
+| --- | --- | --- |
+| Create a source — and, for vector search, declare `semantic_config` (which fields to embed) | `POST /v1/admin/hosted-sources` | [Connect a source](/guides/connect-a-source) |
+| Mint an ingest token for that source | `POST /v1/admin/sources/{source_id}/ingest-token` | [Ingest a dataset](/guides/ingest-a-dataset) |
+| Upload records (resumable/multipart for large data) | `POST /v1/ingest/sources/{source_key}/uploads` | [Ingest a dataset](/guides/ingest-a-dataset) |
+| Poll until searchable — `text_search_ready` and `semantic_search_ready` flip independently | `GET /v1/datasets/{dataset_id}/readiness` | [Ingest a dataset](/guides/ingest-a-dataset) |
+| Search | `POST /v1/search` | [Search model](/concepts/search-model) |
+
+<Note>
+  Endpoints under `/v1/admin/*` are **your** platform's administrative operations on **your own** tenants — authorized by your platform key plus the `X-Splendor-Tenant-Id` header. The `admin` prefix refers to your control over the tenants you created, not to Splendor staff access. (The only Splendor-issued step is your first platform key; everything after is self-serve with that key.)
+</Note>
+
 ## Worked example: a screenshot search app
 
 Say you run a screenshot search product. Each user's screenshots are private personal data, so each user is a tenant:
