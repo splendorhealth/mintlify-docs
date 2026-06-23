@@ -16,9 +16,26 @@ curl https://api.withsplendor.com/v1/datasets \
 
 You get both values from the [console](https://app.withsplendor.com). Treat the token as a secret: never embed it in client-side code or commit it to version control.
 
+## API keys
+
+For backend or scripted access — anything that is not a person in the console — mint an **API key**. An API key is a long-lived bearer token that authenticates as your tenant, so your own services can call the API as you.
+
+Create one in the console under **Settings → API keys**. The secret is shown **once**, right after you create it; store it securely and revoke it from the same screen if it leaks. Creating a key requires a tenant admin.
+
+```bash
+curl https://api.withsplendor.com/v1/datasets \
+  -H "Authorization: Bearer $SPLENDOR_API_KEY"
+```
+
+An API key carries its own tenant, so you **do not** send the `X-Splendor-Tenant-Id` header with it (if you do, it must match the key's tenant). The key has full access to its tenant — the same operations a tenant admin can perform — but only that one tenant, and it **cannot create or manage other keys**. Keep its blast radius small: mint a separate key per service and revoke unused ones.
+
+<Info>
+  An API key reaches exactly one tenant. To operate across many tenants programmatically — one workspace per end-customer — use a platform key instead; see [Build a platform](/guides/platform-patterns).
+</Info>
+
 ## The tenant header
 
-A token can grant access to more than one tenant. The `X-Splendor-Tenant-Id` header tells Splendor which one this request applies to, and the API enforces that the token actually has access to it.
+A token can grant access to more than one tenant. The `X-Splendor-Tenant-Id` header tells Splendor which one this request applies to, and the API enforces that the token actually has access to it. (An [API key](#api-keys) already names its tenant, so it does not need this header.)
 
 The header is required on every endpoint except two:
 
