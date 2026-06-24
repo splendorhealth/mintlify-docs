@@ -35,6 +35,17 @@ A platform key only ever reaches the tenants you created. It cannot reach anothe
 
 See [Provision tenants for your customers](/guides/provision-tenants) for the end-to-end flow.
 
+## Your own data vs. your customers' data
+
+The platform key is your *reseller* credential: it reaches only the customer tenants you provision, never your own workspace. That is deliberate — if the key leaks, the blast radius is customer tenants you can rotate and contain, never your own internal corpus.
+
+That does not mean a platform has no data of its own. Your platform account is itself a tenant, so you can run Splendor for your *own* internal search — your docs, logs, screenshots — right alongside the customer tenants you serve. You just reach that internal data with a different credential: your console login, or a **tenant key** (`spltk.v1.…`) minted for your own tenant (see [Authentication](/authentication)), never the platform key.
+
+Two ways to host internal data, depending on how much isolation you want:
+
+- **Use your platform tenant as the internal workspace.** Your internal data lives in your own account and no platform key can ever read it — the most isolated option.
+- **Provision a dedicated internal tenant** like any customer (`POST /v1/platform/tenants`). The platform key *can* reach it, so one credential operates everything uniformly — at the cost of folding internal data into the platform key's blast radius.
+
 ## Worked example: a screenshot search app
 
 Say you run a screenshot search product. Each user's screenshots are private personal data, so each user is a tenant:
