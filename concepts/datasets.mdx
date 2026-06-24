@@ -35,6 +35,22 @@ Check one dataset with `GET /v1/datasets/{dataset_id}/readiness`, or check many 
   Poll readiness after ingesting new data. Semantic search becomes available after text search, because embeddings are built once records are indexed.
 </Tip>
 
+### Serve keyword results immediately, semantic when it's ready
+
+Because these stages flip independently, you don't have to wait for embeddings to start serving search. The readiness response reports each capability separately — `text_search_ready` / `ready_for.text_search` and `semantic_search_ready` / `ready_for.semantic_search`:
+
+```json
+{
+  "dataset_id": "screenshots",
+  "text_search_ready": true,
+  "semantic_search_ready": false,
+  "semantic_configured": true,
+  "ready_for": { "text_search": true, "sql_search": true, "semantic_search": false }
+}
+```
+
+A good pattern for a responsive UI: as soon as `text_search_ready` is true, let users run `text` and `sql` queries (results appear within seconds of upload); then enable `semantic: true` once `semantic_search_ready` flips. If you run a `semantic` search before embeddings exist, it does not error — it returns keyword results with a `warnings` advisory (`semantic_no_embeddings`), so surface that rather than presenting incomplete results as final.
+
 ## Tracking ingestion
 
 Each ingest produces a run you can follow. `GET /v1/ingest/runs` lists runs across your sources and datasets, and `GET /v1/ingest/runs/{ingest_run_id}` reports the progress and readiness of a single run. Use these to confirm that a load finished before you query it.
