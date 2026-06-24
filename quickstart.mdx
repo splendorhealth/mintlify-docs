@@ -7,16 +7,16 @@ This is the fastest path from nothing to a working search. You'll create a sourc
 
 ## Prerequisites
 
-- A Splendor API token and your tenant ID, both from the [console](https://app.withsplendor.com).
-- An **admin** role in the tenant (creating a source requires admin).
+- A **tenant API key** (`spltk.v1.…`) and your tenant ID, both from the [console](https://app.withsplendor.com): open the **API Keys** panel and create a key. The key is shown once.
+- An **admin** role in the tenant — minting a key, and creating a source, both require admin. (Minting the key is the one step that must be done by a signed-in admin in the browser; see [Authentication](/authentication) for why, and for the platform-key model if you run many tenants.)
 
-Grabbing those credentials in the console is the only step here that needs a browser — every call below is plain HTTP you can run yourself or hand to an agent.
+Creating the key in the console is the only step here that needs a browser — every call below is plain HTTP you can run yourself or hand to an agent.
 
 <Tip>
   Export your credentials once so the examples run as-is:
 
   ```bash
-  export SPLENDOR_TOKEN="your-api-token"
+  export SPLENDOR_TOKEN="spltk.v1...."   # your tenant API key
   export SPLENDOR_TENANT_ID="your-tenant-id"
   ```
 </Tip>
