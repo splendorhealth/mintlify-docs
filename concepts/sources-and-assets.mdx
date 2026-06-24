@@ -1,48 +1,27 @@
 ---
-title: "Sources, objects & image assets"
-description: "How Splendor routes each object in a source — records, image assets, and images referenced by records — without a per-source format."
+title: "Sources & images"
+description: "Point a source at your data — JSONL, CSV, or images — and Splendor makes each file searchable automatically. Records and the images they reference become one searchable thing."
 ---
 
-A **source** is a region of object storage that feeds a dataset. You don't tell a source what kind of data it holds — Splendor detects each object's type as it ingests it and routes it accordingly. One source can hold a mix of record files and images, and a record can point at an image so the two are searchable as one thing.
-
-## A source is a region of bytes
-
-A source is *where data lands*, not *what shape it is*. You no longer declare a `format` when you create one:
-
-```bash
-curl https://api.withsplendor.com/v1/admin/hosted-sources \
-  -H "Authorization: Bearer $SPLENDOR_TOKEN" \
-  -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "source_key": "catalog",
-    "name": "Product catalog",
-    "dataset_id": "products",
-    "source_type": "hosted"
-  }'
-```
-
-Each object is routed by its own content: a `.jsonl` file becomes records, a `.csv` becomes records, a `.png` is treated as an image. Hosted uploads carry a filename so the type is unambiguous; for objects already in your own bucket, the key's extension (and, for CloudTrail, the payload shape) decides.
+A **source** is where your data lives: a place you upload files to, or a bucket Splendor reads from. You don't tell a source what kind of data it holds. Drop in JSONL, CSV, or images and Splendor works out what each file is and makes it searchable — text files become searchable records, images become searchable by their visual content. One source can hold a mix of both.
 
 <Tip>
-  Because routing is per-object, a single source can hold your JSON records *and* the images those records reference. You no longer need a second source — or a second upload pipeline — just to mix modalities.
+  Because every file is handled on its own, a single source can hold your records *and* the images those records reference — no second source, no separate pipeline.
 </Tip>
 
-## Three roles an object can play
+## What each file becomes
 
-| Object | Role | How it's searched |
+| You add | It becomes | You find it by |
 | --- | --- | --- |
-| A record file (`.jsonl`, `.csv`, …) | **Record** | Text, SQL, and semantic search over its fields |
-| An image referenced by a record field | **Asset** | The image is embedded **onto the record**, so the record is found by visual similarity |
-| An image with no record referencing it | **Standalone image** | Found directly by visual similarity (an image library) |
+| A records file (`.jsonl`, `.csv`) | **Records** | Keyword, SQL, and meaning across its fields |
+| An image a record points to | Part of **that record** | The record's fields *and* what the image looks like |
+| An image nothing references | A **standalone image** | Visual similarity — an image library you search directly |
 
-The same image bytes can be an *asset* of a record in one source and a *standalone image* in another — that's your choice, driven entirely by config.
+## Records that carry an image
 
-## Images referenced by records
+A common, powerful pattern: a record that points at an image, found by **both** its fields and what the image actually looks like — with no duplicate entry for the image.
 
-The north-star pattern: log a JSON record that points at an image, and have the record be findable by **both** its metadata and the image's visual content — with no duplicate image document.
-
-Declare which fields hold image locators under `semantic.image_embeddings`:
+Say each product in your catalog has a photo. Tell the source which field holds the image:
 
 ```json
 {
@@ -56,62 +35,47 @@ Declare which fields hold image locators under `semantic.image_embeddings`:
 }
 ```
 
-Now a record like:
+Then add records like:
 
 ```json
 { "sku": "A-12", "name": "Walnut chair", "color": "brown", "photo_url": "images/a-12.png" }
 ```
 
-is ingested as one searchable record. At ingest, Splendor resolves `photo_url`, fetches the image, embeds it, and attaches that embedding to the record's row. Searching `content_filter: "images"` for "a brown wooden chair" returns the **product record** — which you can then filter by `color = "brown"` like any other field. One record, found by metadata filter *and* visual similarity.
+Splendor fetches the image, understands it, and attaches that understanding to the record. A semantic search for "a brown wooden chair" (with `content_filter: "images"`) returns the **product record** — which you can still filter by `color = "brown"` like any other field. One record, found by what it says *and* what it looks like.
 
-<Steps>
-  <Step title="Parse the record">
-    The `.jsonl` object becomes a record; its fields are indexed for text and SQL search.
-  </Step>
-  <Step title="Resolve the locator">
-    The declared field's value (`images/a-12.png`) is resolved to a concrete object in one of your sources (see below).
-  </Step>
-  <Step title="Fetch & embed">
-    Splendor reads the image bytes and embeds them with SigLIP.
-  </Step>
-  <Step title="Attach to the record">
-    The image embedding is written onto the record's row, carrying the record's metadata — so a visual match resolves back to the record.
-  </Step>
-</Steps>
+### Where the image lives
 
-### Locating the image
+The image field can point three ways — always to data you own (a value can never reach storage that isn't yours):
 
-The value of an image-reference field can be written three ways, all resolving to an object inside one of *your* sources (a value can never reach storage you don't own):
-
-| Locator | Resolves to | Use when |
+| You write | Splendor looks in | Use when |
 | --- | --- | --- |
-| `images/a-12.png` | the **record's own source**, under its prefix | the image sits alongside the records (most common) |
-| `splendor://<source>/<key>` | the **named source** | the image lives in a different source you own |
-| `s3://<bucket>/<key>` | the source whose bucket + prefix **covers that key** | your records already carry absolute S3 URIs (typical for BYOC) |
+| `images/a-12.png` | the same source as the record | the image sits next to your records (most common) |
+| `splendor://<source>/<key>` | another source you own | the image lives in a different source |
+| `s3://<bucket>/<key>` | your own bucket | your records already use absolute S3 paths |
 
-For images in your own cloud (BYOC), Splendor assumes the source's role to read them; for hosted images it uses managed credentials. Either way, the same image is fetched and embedded only once even if many records reference it. If a referenced image is later overwritten in place, Splendor notices the change and re-embeds it, so visual search stays in sync with the current bytes.
+Splendor fetches each image once, however many records reference it, and re-reads it automatically if you replace it — so visual search always reflects the current image. Supported image types: `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`, added the same way as any other file.
 
-You can upload image files (`.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`) through the same hosted upload flow as records; their format is detected from the object, so no `format` is needed.
+## A searchable image library
 
-## Passive assets vs. standalone images
+If your records don't reference any images, the images in a source become **standalone** — each its own searchable document — so the source doubles as an image library you query by visual similarity.
 
-Whether a bare image *object* becomes its own searchable document is inferred from your config:
-
-- **No image-reference fields declared** → images in the source are **standalone image documents** (an image library you search directly).
-- **Image-reference fields declared** → images are **passive assets**: stored and referenceable, but not indexed on their own. They appear in search only through the records that reference them — so you don't get a duplicate hit for the image and the record.
-
-Need both in one source — a searchable image library *and* records that reference some of those images? Set the escape hatch:
+If you want both at once — records that reference images *and* those images searchable on their own — turn it on explicitly:
 
 ```json
 { "semantic": { "image_embeddings": { "fields": ["photo_url"], "index_standalone": true } } }
 ```
 
 <Note>
-  A field is either a record (text) field or an image-reference field, never both — declaring the same path under both `document_embeddings` and `image_embeddings` is rejected.
+  A field holds either text or an image reference, not both.
 </Note>
 
-## Where this shows up
+## Next
 
-- **[Ingest a dataset](/guides/ingest-a-dataset)** — create a source and upload records (no `format` needed).
-- **[Semantic search](/guides/semantic-search)** — use `content_filter: "images"` to retrieve by visual similarity.
-- **[Datasets & schema](/concepts/datasets)** — image-reference fields appear in the dataset like any other field you can filter on.
+<Columns cols={2}>
+  <Card title="Ingest a dataset" icon="upload" href="/guides/ingest-a-dataset">
+    Create a source and add your first records and images.
+  </Card>
+  <Card title="Semantic search" icon="wand-magic-sparkles" href="/guides/semantic-search">
+    Search by meaning, including `content_filter: "images"` for visual matches.
+  </Card>
+</Columns>

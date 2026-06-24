@@ -1,0 +1,89 @@
+---
+title: "Recipes"
+description: "What people build with Splendor — three concrete patterns, end to end, with the calls that matter."
+---
+
+A few patterns show up again and again. Each one below is a complete, real use of Splendor — what you get, and the handful of calls that get you there. They all build on the [Quickstart](/quickstart), so do that first if you haven't.
+
+## Search your logs and events by meaning
+
+You have a stream of events — application logs, support tickets, audit trails — and you want to find things by *what they mean*, not the exact words. A user writes "I can't log in"; you want the auth-timeout errors that never say "log in."
+
+Push events to a source, then search semantically:
+
+```bash
+# Push a batch of events (ingest token; no tenant header)
+curl https://api.withsplendor.com/v1/ingest/sources/app-events/logs \
+  -H "Authorization: Bearer $SPLENDOR_INGEST_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '[{"level":"error","message":"auth token expired during checkout","service":"auth"}]'
+
+# Find it by meaning, not keywords
+curl https://api.withsplendor.com/v1/search \
+  -H "Authorization: Bearer $SPLENDOR_TOKEN" \
+  -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID" \
+  -H "Content-Type: application/json" \
+  -d '{"text": "users can'\''t log in", "datasets": ["app-events"], "semantic": true, "limit": 10}'
+```
+
+The same dataset also answers keyword and `SQL` queries — so you can filter by `service`, range over time, and search by meaning, all against one set of records.
+
+→ Full walkthrough: [Stream logs](/guides/stream-logs) · [Semantic search](/guides/semantic-search)
+
+## Find records by what their image looks like
+
+You have records with images — products, listings, documents with photos — and you want to find a record by the *content of its image*, then filter it like any other record. Search "a brown wooden chair" and get back the product, which you can still filter by `price` or `in_stock`.
+
+Tell the source which field holds the image, then search the image modality:
+
+```bash
+# When you create the source, declare the image field
+#   "semantic": { "image_embeddings": { "fields": ["photo_url"] } }
+
+curl https://api.withsplendor.com/v1/search \
+  -H "Authorization: Bearer $SPLENDOR_TOKEN" \
+  -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID" \
+  -H "Content-Type: application/json" \
+  -d '{"text": "a brown wooden chair", "datasets": ["products"],
+       "semantic": true, "content_filter": "images", "limit": 10}'
+```
+
+Splendor embeds each referenced image onto its record, so a visual match returns the **record** — metadata and all — not a bare image. One entry, found by what it says and what it looks like.
+
+→ Full walkthrough: [Sources & images](/concepts/sources-and-assets)
+
+## Give every one of your customers their own search backend
+
+You're building a product *on* Splendor and each of your customers needs isolated search over their own data. You don't want to run a search cluster per customer, and their data must never mix.
+
+Provision a tenant per customer with one **platform key**, and act inside any of them by naming it in the header:
+
+```bash
+# Create a tenant for a customer
+curl https://api.withsplendor.com/v1/platform/tenants \
+  -H "Authorization: Bearer $SPLENDOR_PLATFORM_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Acme Corp", "external_id": "cus_8210"}'
+
+# Then do anything inside that tenant with the SAME key + its id
+curl https://api.withsplendor.com/v1/search \
+  -H "Authorization: Bearer $SPLENDOR_PLATFORM_KEY" \
+  -H "X-Splendor-Tenant-Id: t-3f9c2a1b..." \
+  -H "Content-Type: application/json" \
+  -d '{"text": "invoice", "datasets": ["documents"], "limit": 10}'
+```
+
+One credential creates and operates an unlimited fleet of tenants — each fully isolated — all over the API.
+
+→ Full walkthrough: [Build a platform](/guides/platform-patterns) · [Provision tenants](/guides/provision-tenants)
+
+## Keep going
+
+<Columns cols={2}>
+  <Card title="The search model" icon="layer-group" href="/concepts/search-model">
+    How text, SQL, and semantic search share one envelope.
+  </Card>
+  <Card title="Connect a source" icon="plug" href="/guides/connect-a-source">
+    Push over HTTP, wire up a webhook, or read from your own S3 bucket.
+  </Card>
+</Columns>

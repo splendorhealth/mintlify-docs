@@ -1,31 +1,50 @@
 ---
 title: "Splendor API"
-description: "Search, retrieve, and analyze your operational data across full-text, SQL, and semantic modes."
+description: "Make your operational data searchable by keyword, SQL, and meaning — through one API, with no search infrastructure to run."
 ---
 
-Splendor is a search and retrieval API for your operational data. You ingest datasets — logs, documents, and structured records — and query them through one consistent interface that spans full-text, SQL, and semantic (vector) search. Every record carries provenance back to its source, and every dataset is isolated to your tenant.
+Splendor turns your operational data into a single searchable API. Point it at your logs, documents, and structured records — even images — and query all of it three ways: by **keyword**, by **SQL**, or by **meaning**.
 
-The API is organized around a few ideas that recur everywhere:
+There's no search cluster to run, no embedding pipeline to build, and no per-format ingestion glue to write. You add a file (or stream events), and within minutes it's searchable — with every result traceable to the exact source it came from.
 
-- **Datasets** hold your ingested records and expose a schema you can query.
-- **Search** runs over one or more datasets in `text`, `sql`, or `semantic` mode and returns a single shared envelope.
-- **Handles** — a `search_id`, `view_id`, or cursor — let you page, export, and re-run a query without copying results around.
-- **Provenance** ties each result back to the exact source object and line it came from.
+## What you get
 
-## Start here
+- **Three kinds of search, one interface.** Keyword (full-text), `SQL` over your records' fields, and semantic (vector) search — including images — all return the same response shape.
+- **Just add data.** Upload JSONL, CSV, or images, or stream events; Splendor detects each file's type and makes it searchable. No format declarations, no separate pipelines.
+- **Traceable by default.** Every result carries provenance back to the source object and line it came from.
+- **Isolated by default.** Every dataset belongs to one tenant; data never crosses tenant boundaries.
+
+## How it fits together
+
+A few ideas recur across every endpoint — learn them once and the whole API is predictable:
+
+- **Sources & datasets** — a *source* is where your data lands (a file upload, or your own bucket); it feeds a *dataset* you query.
+- **Search** — one request runs `text`, `sql`, or `semantic` mode over one or more datasets and returns a single shared envelope.
+- **Handles** — a `search_id`, `view_id`, or cursor lets you page, export, and re-run a query without resending it.
+- **Provenance** — every result points back to the source object and line it came from.
+
+## One human step, then it's automatable
+
+<Info>
+  Exactly one thing needs a person in a browser: **signing into the [console](https://app.withsplendor.com) and minting an API key.** Key creation accepts only a signed-in admin — not an API key — so your first credential always starts with a human.
+
+  After that, **everything in these docs is plain HTTP with that key**: ingesting data, searching, provisioning tenants, managing sources. Hand the key to your backend — or to a coding agent like Claude Code — and it can run the rest end to end. (Think of it like cloud setup: a person does the one login, then automation takes it from there.)
+</Info>
+
+## Get started
 
 <Columns cols={2}>
   <Card title="Quickstart" icon="rocket" href="/quickstart">
-    Run your first search in a few minutes with curl, Python, or TypeScript.
+    From an empty workspace to your first result in a few minutes — create a source, add records, search them.
+  </Card>
+  <Card title="See what you can build" icon="lightbulb" href="/recipes">
+    Search by meaning, search by image, one isolated search backend per customer.
   </Card>
   <Card title="Authentication" icon="key" href="/authentication">
-    Authenticate with a bearer token and select your tenant.
+    Get a token, select your tenant, and learn the two kinds of API key.
   </Card>
   <Card title="Core concepts" icon="book-open" href="/concepts/overview">
-    Understand datasets, the search model, handles, views, and provenance.
-  </Card>
-  <Card title="API reference" icon="terminal" href="/api-reference/identity/get-current-user">
-    Browse every endpoint with request and response schemas.
+    Datasets, the search model, handles, views, and provenance.
   </Card>
 </Columns>
 
@@ -39,4 +58,4 @@ curl https://api.withsplendor.com/v1/datasets \
   -H "X-Splendor-Tenant-Id: $SPLENDOR_TENANT_ID"
 ```
 
-From there, the same envelope and the same handles apply whether you are running a keyword search, a SQL projection, or a semantic lookup. The next pages walk through each piece.
+From there the same envelope and the same handles apply whether you are running a keyword search, a SQL projection, or a semantic lookup. The next pages walk through each piece.

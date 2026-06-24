@@ -16,7 +16,7 @@ Two credentials appear below: your **admin bearer token** (with the `X-Splendor-
 
 <Steps>
   <Step title="Create a hosted source">
-    A source declares where data lands and which dataset it feeds. Create a hosted source once; reuse it for every upload. You don't declare a format — Splendor detects each object's type as it ingests it, so one source can hold a mix of record files and images (see [Sources, objects & image assets](/concepts/sources-and-assets)).
+    A source is where your data lands and which dataset it feeds. Create a hosted source once, then reuse it for every upload. Splendor detects each file's type automatically, so one source can hold records and images together (see [Sources & images](/concepts/sources-and-assets)).
 
     ```bash
     curl https://api.withsplendor.com/v1/admin/hosted-sources \

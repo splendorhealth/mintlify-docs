@@ -16,7 +16,7 @@ Create a source, mint an ingest token, then push data to it. Creating sources an
 
 <Steps>
   <Step title="Create a hosted source">
-    A hosted source declares the dataset your data feeds. You don't declare a format — Splendor detects each object's type as it ingests (see [Sources, objects & image assets](/concepts/sources-and-assets)).
+    A hosted source declares the dataset your data feeds. Splendor detects each file's type automatically, so one source can hold records and images together (see [Sources & images](/concepts/sources-and-assets)).
 
     ```bash
     curl https://api.withsplendor.com/v1/admin/hosted-sources \

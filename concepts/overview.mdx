@@ -5,6 +5,8 @@ description: "The model behind every Splendor endpoint: tenancy, datasets, searc
 
 A handful of concepts recur across the entire API. Understanding them once makes every endpoint predictable.
 
+They fit together in a line: your data lives in a **tenant**, organized into **datasets** that **sources** feed. You query a dataset through the **search model**, then page or export the results with **handles**, save them as **views**, and trace any result back through **provenance**.
+
 <Columns cols={2}>
   <Card title="Tenancy & isolation" icon="building" href="/concepts/tenancy">
     Every request acts within one tenant, and data never crosses tenant boundaries.
@@ -12,8 +14,8 @@ A handful of concepts recur across the entire API. Understanding them once makes
   <Card title="Datasets & schema" icon="table" href="/concepts/datasets">
     Datasets hold your records and expose a queryable schema and readiness state.
   </Card>
-  <Card title="Sources & image assets" icon="images" href="/concepts/sources-and-assets">
-    How each object is routed — records, image assets, and images referenced by records.
+  <Card title="Sources & images" icon="images" href="/concepts/sources-and-assets">
+    Add JSONL, CSV, or images to a source — records and the images they reference become one searchable thing.
   </Card>
   <Card title="Search model" icon="layer-group" href="/concepts/search-model">
     One envelope spanning text, SQL, and semantic search.
@@ -33,10 +35,10 @@ A handful of concepts recur across the entire API. Understanding them once makes
 
 Access within a tenant is role-based. The same tenant header selects the workspace; the token's role within that workspace decides what it can do.
 
-| Plane | Who | What they can do |
+| Role | Who | What they can do |
 | --- | --- | --- |
 | **Member** | Any tenant member | Read and query: search, list datasets and runs, read schemas, create and read views, run exports, upload to a source. |
-| **Admin** | Tenant admins | Everything members can, plus create, change, and delete data: sources, connectors, detections, datasets, ingest tokens, reindex and DLQ operations. |
-| **Staff** | Splendor employees | A separate platform plane (for example, workspace provisioning) that is not part of the customer API. |
+| **Admin** | Tenant admins | Everything members can, plus create, change, and delete data: sources, connectors, detections, datasets, ingest tokens, reindex and DLQ operations — and mint tenant and platform API keys. |
+| **Staff** | Splendor employees | Internal operations endpoints, separate from everything in this API. |
 
 Read endpoints are open to any member; operations that mutate or delete require an admin role. See [Roles & permissions](/roles/permissions) for the full breakdown and [Plans & RBAC](/roles/plans) for how enforcement is enabled.
