@@ -16,6 +16,19 @@ curl https://api.withsplendor.com/v1/datasets \
 
 You get both values from the [console](https://app.withsplendor.com). Treat the token as a secret: never embed it in client-side code or commit it to version control.
 
+## Two kinds of API key
+
+Most of the time a token acts within **one** tenant — that's a **tenant key** (`spltk.v1.…`), which you mint from the console's **API Keys** panel (or `POST /v1/admin/api-keys`). It's all you need for everything in these guides.
+
+If you're building a product *on* Splendor and need to create and operate many tenants — say one per end-customer — you use a **platform key** (`splpk.v1.…`) instead. A single platform key provisions tenants and acts inside any of them by naming the tenant in the header. See [Build a platform](/guides/platform-patterns).
+
+| Key | Prefix | Reaches | Mint it |
+| --- | --- | --- | --- |
+| **Tenant key** | `spltk.v1.` | one tenant | Console → API Keys, or `POST /v1/admin/api-keys` |
+| **Platform key** | `splpk.v1.` | every tenant you provision | Console → Platform Keys, or `POST /v1/admin/platform-keys` |
+
+Both are minted by a human admin and shown once. A key can never mint another key, so your first one always comes from a signed-in admin in the console.
+
 ## The tenant header
 
 A token can grant access to more than one tenant. The `X-Splendor-Tenant-Id` header tells Splendor which one this request applies to, and the API enforces that the token actually has access to it.
@@ -23,7 +36,7 @@ A token can grant access to more than one tenant. The `X-Splendor-Tenant-Id` hea
 The header is required on every endpoint except two:
 
 - `GET /v1/me` — returns your identity and the tenants you can access, so it runs before you have chosen one.
-- Workspace provisioning, which is a Splendor-operated endpoint.
+- The platform endpoints (`/v1/platform/*`) — these manage your *fleet* of tenants rather than acting within a single one (see [Build a platform](/guides/platform-patterns)).
 
 <Info>
   Requests that omit the tenant header where it is required return `400`. Requests that name a tenant your token cannot access return `403`.
@@ -59,7 +72,7 @@ for tenant in me["tenants"]:
 
 ## Roles
 
-Within a tenant, read and query endpoints are available to any member. Operations that create, change, or delete data — managing sources and connectors, editing detections, deleting datasets, triggering reindexes — require an admin role. Splendor staff operate a separate platform plane that is not part of the customer API.
+Within a tenant, read and query endpoints are available to any member. Operations that create, change, or delete data — managing sources and connectors, editing detections, deleting datasets, triggering reindexes — require an admin role. (Splendor staff have their own internal operations endpoints, separate from everything documented here.)
 
 See [Roles & permissions](/roles/permissions) for the full breakdown of which operations require which role, and [Plans & RBAC](/roles/plans) for how role enforcement is enabled.
 

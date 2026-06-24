@@ -7,7 +7,7 @@ This guide takes you through the full lifecycle of a customer tenant on Splendor
 
 ## Prerequisites
 
-- A **platform API key**. Splendor enrolls your account as a platform and issues your first key; after that you manage your own keys (rotate and revoke) under `/v1/platform/keys`. Treat the key like a password — it can provision and read every tenant you own.
+- A **platform API key**. You mint your own — no Splendor involvement: as a tenant admin, open the **Platform Keys** panel in the [console](https://app.withsplendor.com) (or call `POST /v1/admin/platform-keys`) and create a key. The secret is shown once. After that you rotate and revoke your keys under `/v1/platform/keys`. Treat the key like a password — it can provision and read every tenant you own.
 
 <Tip>
   Export your key once so the examples run as-is:
