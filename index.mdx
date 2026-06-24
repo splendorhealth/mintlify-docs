@@ -23,6 +23,14 @@ A few ideas recur across every endpoint — learn them once and the whole API is
 - **Handles** — a `search_id`, `view_id`, or cursor lets you page, export, and re-run a query without resending it.
 - **Provenance** — every result points back to the source object and line it came from.
 
+## One human step, then it's automatable
+
+<Info>
+  Exactly one thing needs a person in a browser: **signing into the [console](https://app.withsplendor.com) and minting an API key.** Key creation accepts only a signed-in admin — not an API key — so your first credential always starts with a human.
+
+  After that, **everything in these docs is plain HTTP with that key**: ingesting data, searching, provisioning tenants, managing sources. Hand the key to your backend — or to a coding agent like Claude Code — and it can run the rest end to end. (Think of it like cloud setup: a person does the one login, then automation takes it from there.)
+</Info>
+
 ## Get started
 
 <Columns cols={2}>

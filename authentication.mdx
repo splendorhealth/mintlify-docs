@@ -27,7 +27,7 @@ If you're building a product *on* Splendor and need to create and operate many t
 | **Tenant key** | `spltk.v1.` | one tenant | Console → API Keys, or `POST /v1/admin/api-keys` |
 | **Platform key** | `splpk.v1.` | every tenant you provision | Console → Platform Keys, or `POST /v1/admin/platform-keys` |
 
-Both are minted by a human admin and shown once. A key can never mint another key, so your first one always comes from a signed-in admin in the console.
+Both are shown once, and minting either is the **one action that requires a human**. It's not about the request method — you can `POST` it — it's about *which credential* is allowed: key creation rejects API keys (both tenant and platform keys get a `403`) and accepts only a signed-in admin's console session. So your first key always comes from a person in the browser. Everything *after* that authenticates with the key, so a script — or a coding agent — can do the rest.
 
 ## The tenant header
 
