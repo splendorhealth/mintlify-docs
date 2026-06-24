@@ -5,6 +5,8 @@ description: "The model behind every Splendor endpoint: tenancy, datasets, searc
 
 A handful of concepts recur across the entire API. Understanding them once makes every endpoint predictable.
 
+They fit together in a line: your data lives in a **tenant**, organized into **datasets** that **sources** feed. You query a dataset through the **search model**, then page or export the results with **handles**, save them as **views**, and trace any result back through **provenance**.
+
 <Columns cols={2}>
   <Card title="Tenancy & isolation" icon="building" href="/concepts/tenancy">
     Every request acts within one tenant, and data never crosses tenant boundaries.

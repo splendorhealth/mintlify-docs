@@ -25,6 +25,7 @@
             "pages": [
               "index",
               "quickstart",
+              "recipes",
               "authentication",
               "concepts/overview"
             ]
