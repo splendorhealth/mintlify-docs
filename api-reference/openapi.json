@@ -1268,6 +1268,7 @@
                 },
                 "schema_ready": true,
                 "semantic_configured": true,
+                "semantic_failures": [],
                 "semantic_search_ready": true,
                 "status_counts": [
                   {
@@ -1374,6 +1375,7 @@
               },
               "schema_ready": true,
               "semantic_configured": true,
+              "semantic_failures": [],
               "semantic_search_ready": true,
               "status_counts": [
                 {
@@ -1430,6 +1432,7 @@
           },
           "schema_ready": true,
           "semantic_configured": true,
+          "semantic_failures": [],
           "semantic_search_ready": true,
           "status_counts": [
             {
@@ -1478,6 +1481,13 @@
           "semantic_configured": {
             "title": "Semantic Configured",
             "type": "boolean"
+          },
+          "semantic_failures": {
+            "items": {
+              "$ref": "#/components/schemas/SemanticFailureGroup"
+            },
+            "title": "Semantic Failures",
+            "type": "array"
           },
           "semantic_search_ready": {
             "title": "Semantic Search Ready",
@@ -1561,6 +1571,13 @@
           "semantic_configured": {
             "title": "Semantic Configured",
             "type": "boolean"
+          },
+          "semantic_failures": {
+            "items": {
+              "$ref": "#/components/schemas/SemanticFailureGroup"
+            },
+            "title": "Semantic Failures",
+            "type": "array"
           },
           "semantic_search_ready": {
             "title": "Semantic Search Ready",
@@ -5449,6 +5466,41 @@
         "title": "SemanticDocumentFieldConfig",
         "type": "object"
       },
+      "SemanticFailureGroup": {
+        "description": "A rolled-up group of semantic documents that permanently failed to embed.\n\nGrouped by modality and a categorized failure reason, with a few example\nobject keys. The counts read the dead-letter rows the embedder already wrote\n(it GETs each object and dead-letters a permanent failure), so a caller sees\n*why* a slice of a dataset never embedded \u2014 e.g. image references whose\nobjects were never uploaded surface as ``object_not_found`` \u2014 instead of\nhaving to dig through worker logs.",
+        "properties": {
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          },
+          "media_kind": {
+            "enum": [
+              "image",
+              "text"
+            ],
+            "title": "Media Kind",
+            "type": "string"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          },
+          "sample_keys": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Sample Keys",
+            "type": "array"
+          }
+        },
+        "required": [
+          "media_kind",
+          "reason",
+          "count"
+        ],
+        "title": "SemanticFailureGroup",
+        "type": "object"
+      },
       "SemanticFilterBackfillCreateRequest": {
         "properties": {
           "dataset_id": {
@@ -6193,6 +6245,7 @@
             },
             "schema_ready": true,
             "semantic_configured": true,
+            "semantic_failures": [],
             "semantic_search_ready": true,
             "status_counts": [
               {
