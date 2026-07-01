@@ -52,6 +52,34 @@ Splendor embeds each referenced image onto its record, so a visual match returns
 
 → Full walkthrough: [Sources & images](/concepts/sources-and-assets)
 
+## Load a large image corpus
+
+Your images live somewhere else — a bucket, or a dataset of image URLs — and you want to search them. Splendor embeds images from **your own storage** (not arbitrary web URLs), so bring the pixels into a source first. For many images, presign a **batch** in one call, PUT them in parallel, then point each record at the returned `image_reference`.
+
+```bash
+# 1. Presign up to 256 image objects in one call (one PUT URL each). No ingest
+#    run is created per image — the objects are just stored for records to reference.
+curl https://api.withsplendor.com/v1/ingest/sources/$SOURCE_KEY/asset-uploads \
+  -H "Authorization: Bearer $SPLENDOR_INGEST_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"assets": [
+        {"content_type": "image/jpeg", "object_size_bytes": 84213, "filename": "a12.jpg"},
+        {"content_type": "image/png",  "object_size_bytes": 12044, "filename": "b7.png"}
+      ]}'
+# → { "assets": [ { "upload_url": "https://…", "required_headers": { … },
+#       "image_reference": "s3://…/sources/…/a12.jpg" }, … ] }
+
+# 2. PUT each image to its upload_url in parallel, sending required_headers.
+
+# 3. Ingest records whose declared image field holds the returned image_reference
+#    (source config: "semantic": { "image_embeddings": { "fields": ["image"] } }):
+#    { "id": "sku-a12", "image": "s3://…/sources/…/a12.jpg", "price": 249 }
+```
+
+Each record embeds its referenced image when it ingests; then search with `content_filter: "images"` as above. Use `image_reference` verbatim — a bare object key is read relative to the source prefix and would resolve to the wrong object.
+
+→ [Sources & images](/concepts/sources-and-assets)
+
 ## Give every one of your customers their own search backend
 
 You're building a product *on* Splendor and each of your customers needs isolated search over their own data. You don't want to run a search cluster per customer, and their data must never mix.

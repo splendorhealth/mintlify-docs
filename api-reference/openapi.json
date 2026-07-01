@@ -921,6 +921,7 @@
               "source",
               "dataset",
               "object",
+              "record",
               "tenant"
             ],
             "title": "Scope",
@@ -1086,6 +1087,7 @@
               "source",
               "dataset",
               "object",
+              "record",
               "tenant"
             ],
             "title": "Scope",
@@ -3044,6 +3046,135 @@
         "title": "HTTPValidationError",
         "type": "object"
       },
+      "HostedAssetBatchInitiateRequest": {
+        "properties": {
+          "assets": {
+            "items": {
+              "$ref": "#/components/schemas/HostedAssetSpec"
+            },
+            "maxItems": 256,
+            "minItems": 1,
+            "title": "Assets",
+            "type": "array"
+          }
+        },
+        "required": [
+          "assets"
+        ],
+        "title": "HostedAssetBatchInitiateRequest",
+        "type": "object"
+      },
+      "HostedAssetBatchInitiateResponse": {
+        "example": {
+          "assets": [
+            {
+              "bucket": "acme-uploads",
+              "expires_at": "2026-01-15T09:30:00Z",
+              "image_reference": "s3://acme-uploads/sources/catalog/hosted/2026/07/01/abc123.png",
+              "key": "sources/catalog/hosted/2026/07/01/abc123.png",
+              "required_headers": {
+                "content-type": "image/png"
+              },
+              "upload_session_id": "ups_01H8Z4",
+              "upload_url": "https://acme-uploads.s3.amazonaws.com/..."
+            }
+          ]
+        },
+        "properties": {
+          "assets": {
+            "items": {
+              "$ref": "#/components/schemas/HostedAssetUpload"
+            },
+            "title": "Assets",
+            "type": "array"
+          }
+        },
+        "required": [
+          "assets"
+        ],
+        "title": "HostedAssetBatchInitiateResponse",
+        "type": "object"
+      },
+      "HostedAssetSpec": {
+        "properties": {
+          "content_type": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Content Type",
+            "type": "string"
+          },
+          "filename": {
+            "anyOf": [
+              {
+                "maxLength": 1024,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filename"
+          },
+          "object_size_bytes": {
+            "minimum": 0.0,
+            "title": "Object Size Bytes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "content_type",
+          "object_size_bytes"
+        ],
+        "title": "HostedAssetSpec",
+        "type": "object"
+      },
+      "HostedAssetUpload": {
+        "properties": {
+          "bucket": {
+            "title": "Bucket",
+            "type": "string"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "image_reference": {
+            "title": "Image Reference",
+            "type": "string"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "required_headers": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Required Headers",
+            "type": "object"
+          },
+          "upload_session_id": {
+            "title": "Upload Session Id",
+            "type": "string"
+          },
+          "upload_url": {
+            "title": "Upload Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "upload_session_id",
+          "bucket",
+          "key",
+          "upload_url",
+          "required_headers",
+          "expires_at",
+          "image_reference"
+        ],
+        "title": "HostedAssetUpload",
+        "type": "object"
+      },
       "HostedMultipartPart": {
         "properties": {
           "etag": {
@@ -3615,6 +3746,7 @@
           "bucket": "acme-uploads",
           "dataset_id": "app-logs",
           "etag": "\"abc123\"",
+          "image_reference": "s3://acme-uploads/uploads/ups_01H8Z3/data.jsonl",
           "key": "uploads/ups_01H8Z3/data.jsonl",
           "source": "app-logs",
           "source_id": 12,
@@ -3639,6 +3771,10 @@
               }
             ],
             "title": "Etag"
+          },
+          "image_reference": {
+            "title": "Image Reference",
+            "type": "string"
           },
           "key": {
             "title": "Key",
@@ -3671,7 +3807,8 @@
           "tenant_id",
           "source_id",
           "dataset_id",
-          "source"
+          "source",
+          "image_reference"
         ],
         "title": "HostedUploadResponse",
         "type": "object"
@@ -4758,6 +4895,366 @@
           "transform_version"
         ],
         "title": "ProvenanceResponse",
+        "type": "object"
+      },
+      "QueryEndpointCreateRequest": {
+        "description": "Create a Query Endpoint (#684): a named SQL template + typed parameters.",
+        "properties": {
+          "description": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "name": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "parameters": {
+            "items": {
+              "$ref": "#/components/schemas/QueryParameter"
+            },
+            "title": "Parameters",
+            "type": "array"
+          },
+          "sql": {
+            "minLength": 1,
+            "title": "Sql",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "sql"
+        ],
+        "title": "QueryEndpointCreateRequest",
+        "type": "object"
+      },
+      "QueryEndpointExecuteRequest": {
+        "description": "Execute a Query Endpoint: supply parameter values, optionally pin a version.",
+        "properties": {
+          "dataset_scope": {
+            "default": "selected",
+            "enum": [
+              "selected",
+              "all"
+            ],
+            "title": "Dataset Scope",
+            "type": "string"
+          },
+          "datasets": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Datasets",
+            "type": "array"
+          },
+          "limit": {
+            "default": 100,
+            "maximum": 1000.0,
+            "minimum": 0.0,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "parameters": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                }
+              ]
+            },
+            "title": "Parameters",
+            "type": "object"
+          },
+          "version": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version"
+          }
+        },
+        "title": "QueryEndpointExecuteRequest",
+        "type": "object"
+      },
+      "QueryEndpointListResponse": {
+        "example": {
+          "endpoints": [
+            {
+              "created_at": "2026-01-15T09:30:00Z",
+              "description": "Orders in a region, newest first.",
+              "endpoint_id": "qe_01H8Z3",
+              "latest_version": 2,
+              "name": "orders_by_region",
+              "updated_at": "2026-01-15T09:30:00Z"
+            }
+          ]
+        },
+        "properties": {
+          "endpoints": {
+            "items": {
+              "$ref": "#/components/schemas/QueryEndpointResponse"
+            },
+            "title": "Endpoints",
+            "type": "array"
+          }
+        },
+        "required": [
+          "endpoints"
+        ],
+        "title": "QueryEndpointListResponse",
+        "type": "object"
+      },
+      "QueryEndpointResponse": {
+        "example": {
+          "created_at": "2026-01-15T09:30:00Z",
+          "description": "Orders in a region, newest first.",
+          "endpoint_id": "qe_01H8Z3",
+          "latest_version": 2,
+          "name": "orders_by_region",
+          "updated_at": "2026-01-15T09:30:00Z"
+        },
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "endpoint_id": {
+            "title": "Endpoint Id",
+            "type": "string"
+          },
+          "latest_version": {
+            "title": "Latest Version",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "endpoint_id",
+          "name",
+          "latest_version",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "QueryEndpointResponse",
+        "type": "object"
+      },
+      "QueryEndpointVersionCreateRequest": {
+        "description": "Add a new immutable version to an existing Query Endpoint.",
+        "properties": {
+          "parameters": {
+            "items": {
+              "$ref": "#/components/schemas/QueryParameter"
+            },
+            "title": "Parameters",
+            "type": "array"
+          },
+          "sql": {
+            "minLength": 1,
+            "title": "Sql",
+            "type": "string"
+          }
+        },
+        "required": [
+          "sql"
+        ],
+        "title": "QueryEndpointVersionCreateRequest",
+        "type": "object"
+      },
+      "QueryEndpointVersionResponse": {
+        "example": {
+          "created_at": "2026-01-15T09:30:00Z",
+          "created_by": "user_01H8Z3",
+          "parameters": [
+            {
+              "default": null,
+              "name": "region",
+              "required": true,
+              "type": "string"
+            },
+            {
+              "default": 100,
+              "name": "limit",
+              "required": false,
+              "type": "int"
+            }
+          ],
+          "sql": "SELECT * FROM orders WHERE region = :region LIMIT :limit",
+          "version": 2
+        },
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
+          },
+          "parameters": {
+            "items": {
+              "$ref": "#/components/schemas/QueryParameter"
+            },
+            "title": "Parameters",
+            "type": "array"
+          },
+          "sql": {
+            "title": "Sql",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "version",
+          "sql",
+          "parameters",
+          "created_at"
+        ],
+        "title": "QueryEndpointVersionResponse",
+        "type": "object"
+      },
+      "QueryParameter": {
+        "description": "One typed parameter of a Query Endpoint.\n\nA required parameter must be supplied at execute time and carries no default; an\noptional parameter must carry a ``default`` that is valid for its ``type``.",
+        "properties": {
+          "default": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Default"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "required": {
+            "default": true,
+            "title": "Required",
+            "type": "boolean"
+          },
+          "type": {
+            "enum": [
+              "string",
+              "int",
+              "float",
+              "bool"
+            ],
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "type"
+        ],
+        "title": "QueryParameter",
+        "type": "object"
+      },
+      "RecordDeleteRequest": {
+        "description": "Delete a specific set of records (by ``record_id``) from a dataset.\n\nCapped at 1024 record_ids per request: the deletion worker issues one delete-by-query\nfor the whole set (it does not chunk), so an unbounded set would produce an oversized\nquery. Send larger deletes in batches.",
+        "properties": {
+          "dataset_id": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Dataset Id",
+            "type": "string"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "maxLength": 1024,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "record_ids": {
+            "items": {
+              "maxLength": 512,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 1024,
+            "minItems": 1,
+            "title": "Record Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "dataset_id",
+          "record_ids"
+        ],
+        "title": "RecordDeleteRequest",
         "type": "object"
       },
       "ReindexJobCreateRequest": {
@@ -8346,6 +8843,59 @@
         ]
       }
     },
+    "/v1/records/delete": {
+      "post": {
+        "description": "Deletes a specific set of records (by record_id) from a dataset and enqueues a managed data-deletion job that purges their indexed and semantic data. The delete is durable: the records are tombstoned so a later reindex cannot bring them back. Up to 1024 record_ids per request. Returns the deletion job so you can track it to completion. Requires an admin role.",
+        "operationId": "deleteRecords",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SplendorTenantId"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecordDeleteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataDeletionJobResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete records",
+        "tags": [
+          "Datasets & schema"
+        ]
+      }
+    },
     "/v1/object-image-url": {
       "get": {
         "description": "Returns a short-lived presigned URL for an object's image, for rendering previews of image results. The URL is scoped to the authenticated tenant.",
@@ -9169,6 +9719,460 @@
         "summary": "Get view records",
         "tags": [
           "Views"
+        ]
+      }
+    },
+    "/v1/endpoints": {
+      "get": {
+        "description": "Lists the query endpoints in the selected tenant.",
+        "operationId": "listQueryEndpoints",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SplendorTenantId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueryEndpointListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        },
+        "summary": "List query endpoints",
+        "tags": [
+          "Query Endpoints"
+        ]
+      },
+      "post": {
+        "description": "Creates a named, versioned SQL query with typed parameters (the durable counterpart to an ad-hoc SQL search). The SQL uses `:name` placeholders, each declared as a typed parameter; values are bound safely at execute time.",
+        "operationId": "createQueryEndpoint",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/SplendorTenantId"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QueryEndpointCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueryEndpointResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "The request is invalid."
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "The request conflicts with the current state of the resource."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create a query endpoint",
+        "tags": [
+          "Query Endpoints"
+        ]
+      }
+    },
+    "/v1/endpoints/{endpoint_id}": {
+      "delete": {
+        "description": "Deletes a query endpoint and all of its versions.",
+        "operationId": "deleteQueryEndpoint",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "endpoint_id",
+            "required": true,
+            "schema": {
+              "title": "Endpoint Id",
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/SplendorTenantId"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "The requested resource was not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete a query endpoint",
+        "tags": [
+          "Query Endpoints"
+        ]
+      },
+      "get": {
+        "description": "Returns a query endpoint's metadata and its current version number.",
+        "operationId": "getQueryEndpoint",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "endpoint_id",
+            "required": true,
+            "schema": {
+              "title": "Endpoint Id",
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/SplendorTenantId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueryEndpointResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "The requested resource was not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get a query endpoint",
+        "tags": [
+          "Query Endpoints"
+        ]
+      }
+    },
+    "/v1/endpoints/{endpoint_id}/execute": {
+      "post": {
+        "description": "Runs a query endpoint: binds the supplied parameter values into the stored SQL template (the current version, or a pinned `version`) and executes it, returning a standard search result envelope. Values are bound as typed, escaped literals, so a parameter value can never alter the query's structure.",
+        "operationId": "executeQueryEndpoint",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "endpoint_id",
+            "required": true,
+            "schema": {
+              "title": "Endpoint Id",
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/SplendorTenantId"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QueryEndpointExecuteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchEnvelope"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "The request is invalid."
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "The requested resource was not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Execute a query endpoint",
+        "tags": [
+          "Query Endpoints"
+        ]
+      }
+    },
+    "/v1/endpoints/{endpoint_id}/versions": {
+      "post": {
+        "description": "Adds a new immutable version (SQL template + typed parameters) and advances the endpoint's current-version pointer. Prior versions remain retrievable.",
+        "operationId": "createQueryEndpointVersion",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "endpoint_id",
+            "required": true,
+            "schema": {
+              "title": "Endpoint Id",
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/SplendorTenantId"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QueryEndpointVersionCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueryEndpointVersionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "The request is invalid."
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "The requested resource was not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add a query endpoint version",
+        "tags": [
+          "Query Endpoints"
+        ]
+      }
+    },
+    "/v1/endpoints/{endpoint_id}/versions/{version}": {
+      "get": {
+        "description": "Returns a specific version's SQL template and typed parameters.",
+        "operationId": "getQueryEndpointVersion",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "endpoint_id",
+            "required": true,
+            "schema": {
+              "title": "Endpoint Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "version",
+            "required": true,
+            "schema": {
+              "title": "Version",
+              "type": "integer"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/SplendorTenantId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QueryEndpointVersionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "The requested resource was not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get a query endpoint version",
+        "tags": [
+          "Query Endpoints"
         ]
       }
     },
@@ -10374,6 +11378,88 @@
           }
         },
         "summary": "Get an ingest run",
+        "tags": [
+          "Sources & ingest"
+        ]
+      }
+    },
+    "/v1/ingest/sources/{source_key}/asset-uploads": {
+      "post": {
+        "description": "Presigns many image objects in one call, returning a single PUT URL and a reusable `image_reference` per asset. Unlike the per-object upload flow, no ingest run is created per asset \u2014 store the images, then point records' image_embeddings fields at each `image_reference`. The scalable path for large image corpora.",
+        "operationId": "initiateAssetUploads",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "source_key",
+            "required": true,
+            "schema": {
+              "title": "Source Key",
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/SplendorTenantId"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HostedAssetBatchInitiateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedAssetBatchInitiateResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "The request is invalid."
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "The requested resource was not found."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Presign a batch of image assets",
         "tags": [
           "Sources & ingest"
         ]
@@ -12691,6 +13777,10 @@
     {
       "description": "Save queries and materialize result sets for repeatable analysis.",
       "name": "Views"
+    },
+    {
+      "description": "Define named, versioned, parameterized SQL queries and manage their versions.",
+      "name": "Query Endpoints"
     },
     {
       "description": "Create and manage asynchronous exports of search results.",
