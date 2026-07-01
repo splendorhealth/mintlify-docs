@@ -30,7 +30,7 @@ Say each product in your catalog has a photo. Tell the source which field holds 
   "dataset_id": "products",
   "source_type": "hosted",
   "semantic": {
-    "image_embeddings": { "fields": ["photo_url"] }
+    "image_embeddings": { "fields": ["photo_key"] }
   }
 }
 ```
@@ -38,10 +38,10 @@ Say each product in your catalog has a photo. Tell the source which field holds 
 Then add records like:
 
 ```json
-{ "sku": "A-12", "name": "Walnut chair", "color": "brown", "photo_url": "images/a-12.png" }
+{ "sku": "A-12", "name": "Walnut chair", "color": "brown", "photo_key": "images/a-12.png" }
 ```
 
-Splendor fetches the image, understands it, and attaches that understanding to the record. A semantic search for "a brown wooden chair" (with `content_filter: "images"`) returns the **product record** — which you can still filter by `color = "brown"` like any other field. One record, found by what it says *and* what it looks like.
+Splendor reads that image from your source, understands it, and attaches that understanding to the record. A semantic search for "a brown wooden chair" (with `content_filter: "images"`) returns the **product record** — which you can still filter by `color = "brown"` like any other field. One record, found by what it says *and* what it looks like.
 
 ### Where the image lives
 
@@ -53,7 +53,9 @@ The image field can point three ways — always to data you own (a value can nev
 | `splendor://<source>/<key>` | another source you own | the image lives in a different source |
 | `s3://<bucket>/<key>` | your own bucket | your records already use absolute S3 paths |
 
-Splendor fetches each image once, however many records reference it, and re-reads it automatically if you replace it — so visual search always reflects the current image. Supported image types: `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`, added the same way as any other file.
+These are references to an object in a source you own — **not** public web URLs. Splendor never fetches an arbitrary `http(s)://` address. If your records carry image URLs (a scraped or third-party dataset), download the images into a source first — a [hosted upload](/guides/ingest-a-dataset) or your own S3 bucket — and reference the stored key.
+
+Splendor reads each referenced image once, however many records reference it, and re-reads it automatically if you replace it — so visual search always reflects the current image. Supported image types: `.png`, `.jpg`, `.jpeg`, `.gif`, `.webp`, added the same way as any other file.
 
 ## A searchable image library
 
@@ -62,7 +64,7 @@ If your records don't reference any images, the images in a source become **stan
 If you want both at once — records that reference images *and* those images searchable on their own — turn it on explicitly:
 
 ```json
-{ "semantic": { "image_embeddings": { "fields": ["photo_url"], "index_standalone": true } } }
+{ "semantic": { "image_embeddings": { "fields": ["photo_key"], "index_standalone": true } } }
 ```
 
 <Note>

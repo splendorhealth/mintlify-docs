@@ -38,7 +38,7 @@ Tell the source which field holds the image, then search the image modality:
 
 ```bash
 # When you create the source, declare the image field
-#   "semantic": { "image_embeddings": { "fields": ["photo_url"] } }
+#   "semantic": { "image_embeddings": { "fields": ["photo_key"] } }
 
 curl https://api.withsplendor.com/v1/search \
   -H "Authorization: Bearer $SPLENDOR_TOKEN" \
